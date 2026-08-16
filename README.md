@@ -24,6 +24,12 @@ Depois disso, as skills abaixo passam a estar disponíveis em qualquer sessão.
 | `armando-timbrado` | Gera o `.docx` em papel timbrado, Book Antiqua 12, entrelinha 1,5, 8 pt entre parágrafos. |
 | `armando-naji-tarefa` | Monta o card de tarefa no template oficial do NAJI. |
 
+Vai junto também o agente **`jurisprudencia`** (`agents/jurisprudencia.md`), que pesquisa precedentes
+no Jus IA e é acionado pela skill de análise para embasar tese, e o **`scripts/pdftext.ps1`**, que
+extrai texto de PDF em máquina Windows sem Python. Como vêm dentro do plugin, o colega não precisa
+copiar nada para `~/.claude/agents` nem para `~/.claude/tools` — é o ganho sobre a distribuição
+manual por Drive.
+
 ## Atualizando as skills
 
 Edite os arquivos em `armando-advogados/skills/`, suba a `version` no
