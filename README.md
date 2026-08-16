@@ -21,6 +21,7 @@ Depois disso, as skills abaixo passam a estar disponíveis em qualquer sessão.
 |---|---|
 | `armando-analise-contrato` | Analisa contrato recebido de terceiro. Modo 1: análise inicial cláusula a cláusula, com página dispositiva ao final. Modo 2: memorando de cotejo quando a contraparte devolve a minuta alterada. |
 | `armando-elaborar-contrato` | Redige minuta nova no padrão da casa — preâmbulo, cláusulas numeradas, bloco de disposições gerais, foro com renúncia. |
+| `armando-peticao-inicial` | Redige petição inicial no padrão da casa — endereçamento, preâmbulo, seções em romano, tutela de urgência, rol de pedidos, valor da causa e bloco de assinaturas. Padrão extraído de 21 iniciais do Drive. |
 | `armando-timbrado` | Gera o `.docx` em papel timbrado, Book Antiqua 12, entrelinha 1,5, 8 pt entre parágrafos. |
 | `armando-naji-tarefa` | Monta o card de tarefa no template oficial do NAJI. |
 
