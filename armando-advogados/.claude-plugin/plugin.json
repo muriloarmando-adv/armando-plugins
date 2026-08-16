@@ -1,0 +1,14 @@
+{
+  "name": "armando-advogados",
+  "description": "Skills do escritório Armando Advogados: análise de contrato de terceiro, elaboração de minuta no padrão da casa, geração de peças em papel timbrado e formatação de cards do NAJI.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Armando Advogados"
+  },
+  "keywords": [
+    "juridico",
+    "contratos",
+    "peticao",
+    "naji"
+  ]
+}

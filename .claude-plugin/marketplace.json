@@ -1,0 +1,18 @@
+{
+  "name": "armando-advogados",
+  "owner": {
+    "name": "Armando Advogados"
+  },
+  "metadata": {
+    "description": "Marketplace interno do escritório Armando Advogados."
+  },
+  "plugins": [
+    {
+      "name": "armando-advogados",
+      "source": "./armando-advogados",
+      "description": "Skills do escritório Armando Advogados: análise e elaboração de contratos, papel timbrado e cards do NAJI.",
+      "version": "1.0.0",
+      "category": "legal"
+    }
+  ]
+}
