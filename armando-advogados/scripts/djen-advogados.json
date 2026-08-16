@@ -1,0 +1,15 @@
+{
+  "_comentario": "Advogados monitorados no DJEN. Editar aqui para incluir/remover. 'principal' apenas destaca no relatorio.",
+  "advogados": [
+    { "nome": "HENRIQUE ROCHA ARMANDO",   "oab": "10167",  "uf": "TO", "principal": true },
+    { "nome": "SANDRO HENRIQUE ARMANDO",  "oab": "128510", "uf": "SP" },
+    { "nome": "SANDRO HENRIQUE ARMANDO",  "oab": "11459",  "uf": "TO" },
+    { "nome": "MURILO DA SILVA ARMANDO",  "oab": "480082", "uf": "SP" },
+    { "nome": "GABRIELA DE MELO NEITZKE", "oab": "12080",  "uf": "TO" },
+    { "nome": "BRUNO OTAVIO PEREIRA ALVES", "oab": "4893", "uf": "TO" },
+    { "nome": "RAISSA BARCELOS FERNANDES DE MEDEIROS", "oab": "9132", "uf": "TO" },
+    { "nome": "SARAH GREGORIO ERCOLIN",   "oab": "9703",   "uf": "TO" }
+  ],
+  "tribunais": ["TJTO", "STJ"],
+  "destinatario_email": "murilo.armando@gmail.com"
+}
