@@ -115,6 +115,8 @@ O script devolve: **diagnóstico** (quotas que não fecham, capital indivisível
 
 Flags úteis: `-ValorQuota`, `-UmMil` (grafia "um mil reais", usada nos instrumentos da casa), `-Clausula`, `-Saida arquivo.md`, `-Json`. Modelo de entrada em `scripts/exemplo-quadro.json`; a documentação completa está no cabeçalho do próprio `.ps1`.
 
+**Depois de redigida a minuta**, passe o documento inteiro pelo `scripts/extenso.ps1` do plugin (`armando-advogados/scripts/extenso.ps1`, modo `-Path`): ele varre a peça e acusa todo par `R$ X (extenso)` em que o extenso não bate com o algarismo — o erro típico de reaproveitar instrumento anterior e trocar só o número.
+
 ## 6. Alteração e consolidação
 
 `referencias/alteracao-e-consolidacao.md` — anatomia do instrumento de duas partes, os três verbos (altera-se / inclui-se / suprime-se), redação pronta para aumento de capital, capitalização de reservas, cessão de quotas, retirada de sócio e troca de administração, e o roteiro de arquivamento.

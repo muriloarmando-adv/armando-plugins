@@ -19,6 +19,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/quadro-societario.p
 - [ ] Se o capital não está totalmente integralizado: há prazo e modo de realização (art. 997, IV).
 - [ ] ⚠ **Todo valor e toda quantidade têm extenso, e o extenso está certo.** A XXII Alteração da Distribuidora de Gás Correa registra *"O aumento de R$ 350.000,00 (quinhentos mil reais)"* — errado, arquivado, e replicável por copiar-e-colar. O script gera o extenso; não o digite à mão.
 - [ ] ⚠ Parênteses fechados: o mesmo instrumento traz *"R$ 150.000,00 cento e cinquenta mil reais)"*.
+- [ ] **Varredura final do documento inteiro** pelo `scripts/extenso.ps1` do plugin, modo `-Path`: confere todo par `R$ X (extenso)` da peça, inclusive os valores que não vieram do quadro societário (preço de cessão, alçada do administrador, parcelas de haveres).
 - [ ] A tabela do capital aparece com os mesmos números **em todos os lugares** onde é repetida (corpo da alteração e consolidação).
 
 ## B. Identidade das pessoas
