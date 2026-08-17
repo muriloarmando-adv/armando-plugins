@@ -54,15 +54,27 @@ Para conferir se pegou: `/plugin` e procurar `armando-advogados` na lista de ins
 ## Mensagem pronta para mandar no grupo do escritório
 
 > Pessoal, as skills do escritório para o Claude estão disponíveis. Elas fazem análise de contrato
-> recebido, redação de minuta no padrão da casa, geração de peça em papel timbrado e o card do NAJI.
+> recebido, redação de minuta no padrão da casa, **redação de petição inicial no padrão da casa**,
+> geração de peça em papel timbrado e o card do NAJI.
 >
 > Rodem esses dois comandos uma vez, dentro do Claude Code:
 >
 > `/plugin marketplace add <ORG>/armando-plugins`
 > `/plugin install armando-advogados@armando-advogados`
 >
-> Depois é só pedir normalmente — "analisa esse contrato", "faz a minuta de locação", "monta a
-> tarefa no NAJI" — que a skill certa entra sozinha. Não precisa chamar pelo nome.
+> Depois é só pedir normalmente — "analisa esse contrato", "faz a minuta de locação", "entra com a
+> monitória contra o fulano", "monta a tarefa no NAJI" — que a skill certa entra sozinha. Não
+> precisa chamar pelo nome.
+
+---
+
+## Aviso para quem já tem as skills soltas em `~/.claude/skills`
+
+Se a máquina já tiver as pastas `armando-*` dentro de `~/.claude/skills` (cópias antigas ou
+junções para um clone local do repo), **elas vão conflitar com o plugin**: a mesma skill aparece
+duas vezes, e não há garantia de qual versão o Claude usa.
+
+Antes de instalar o plugin, apague ou renomeie essas pastas. O plugin passa a ser a única fonte.
 
 ---
 
