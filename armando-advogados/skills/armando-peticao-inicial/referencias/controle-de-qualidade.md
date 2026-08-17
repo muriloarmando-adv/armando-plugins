@@ -4,6 +4,28 @@ Passagem obrigatória antes de entregar. Os itens marcados com ⚠️ são defei
 
 ---
 
+## 0. Varredura automática — rode primeiro
+
+Os três scripts em `scripts/` do plugin cobrem, por aritmética e expressão regular, os itens **1, 2 (parcial), 5 (parcial)** e boa parte do **7** desta lista. Rode-os antes de ler a peça: eles liberam a leitura para o que só a leitura resolve.
+
+```powershell
+& "<plugin>\scripts\revisar-inicial.ps1"          -Path "<peça>"
+& "<plugin>\scripts\extenso.ps1"                  -Path "<peça>"
+& "<plugin>\scripts\validar-identificadores.ps1"  -Path "<peça>"
+```
+
+| Script | O que apanha |
+|---|---|
+| `revisar-inicial.ps1` | resíduo de trabalho; identificadores com grafia divergente na mesma peça (distância de edição 1–2); romano repetido ou saltado; ausência de valor da causa, de fecho, de declaração sobre conciliação e de OAB; `OAB/SP 125.510`; mistura de *inaudita altera parte/pars* |
+| `extenso.ps1` | cada par `R$ X (extenso)` conferido dígito a dígito; valores sem extenso; `R$ 983,032,00` com vírgula no lugar do ponto |
+| `validar-identificadores.ps1` | dígito verificador de CPF, CNPJ e número CNJ (mod 97, ISO 7064) |
+
+Código de saída `1` quando há achado ALTA — dá para encadear em automação.
+
+**O que eles não fazem:** conferir se a ementa existe, se o precedente se aplica, se o rito é o correto, se o pedido é executável, se a tese fecha. Tudo isso continua abaixo.
+
+---
+
 ## 1. Varredura de resíduo de trabalho
 
 Busque no documento inteiro. Nenhuma destas ocorrências pode sobreviver:

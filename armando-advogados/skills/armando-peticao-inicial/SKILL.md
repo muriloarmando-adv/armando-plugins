@@ -125,6 +125,18 @@ Detalhamento e vedações em **`referencias/estilo-e-vedacoes.md`**. O essencial
 
 Antes de entregar, rode **`referencias/controle-de-qualidade.md`**. Ele apanha o que efetivamente vazou nas iniciais do acervo: nome de parte trocado no meio da peça, número de auto de infração digitado com um caractere errado em relação ao preâmbulo, valor por extenso divergente do algarismo, `Dá-se à causa o valor de xxxxxxxxxx` esquecido, campo `EDER...........` não preenchido, marcação de pesquisa pendente no corpo, seção numerada duas vezes com o mesmo romano.
 
+**A parte mecânica é automatizada — rode sempre**, antes da conferência de leitura. Os três scripts ficam na pasta `scripts/` do plugin (localize o caminho: ele muda conforme a instalação). Aceitam `.docx`, `.md` e `.txt`, e devolvem código de saída `1` quando há achado de severidade ALTA:
+
+```powershell
+& "<plugin>\scripts\revisar-inicial.ps1"          -Path "<peça>"   # resíduo, identificador divergente, numeração, requisitos do art. 319
+& "<plugin>\scripts\extenso.ps1"                  -Path "<peça>"   # confere cada par "R$ X (extenso)"
+& "<plugin>\scripts\validar-identificadores.ps1"  -Path "<peça>"   # dígito verificador de CPF, CNPJ e número CNJ
+```
+
+O `extenso.ps1` também gera o extenso avulso, útil na hora de redigir: `-Valor 13173.13` devolve `R$ 13.173,13 (treze mil, cento e setenta e três reais e treze centavos)`.
+
+Os scripts cobrem só o mecânico. Ementa, tese, cabimento e adequação do rito continuam exigindo leitura — e nada neles substitui o restante do `controle-de-qualidade.md`.
+
 ---
 
 ## 8. Entrega

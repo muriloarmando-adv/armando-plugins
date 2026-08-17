@@ -25,6 +25,12 @@ Depois disso, as skills abaixo passam a estar disponíveis em qualquer sessão.
 | `armando-timbrado` | Gera o `.docx` em papel timbrado, Book Antiqua 12, entrelinha 1,5, 8 pt entre parágrafos. |
 | `armando-naji-tarefa` | Monta o card de tarefa no template oficial do NAJI. |
 
+Em `scripts/` vão também as três verificações mecânicas da petição inicial —
+`revisar-inicial.ps1` (resíduo de trabalho, identificador divergente, numeração, requisitos do
+art. 319), `extenso.ps1` (confere cada par `R$ X (extenso)` e gera o extenso avulso) e
+`validar-identificadores.ps1` (dígito verificador de CPF, CNPJ e número CNJ). Aceitam `.docx`,
+`.md` e `.txt`, e saem com código `1` quando há achado grave.
+
 Vai junto também o agente **`jurisprudencia`** (`agents/jurisprudencia.md`), que pesquisa precedentes
 no Jus IA e é acionado pela skill de análise para embasar tese, e o **`scripts/pdftext.ps1`**, que
 extrai texto de PDF em máquina Windows sem Python. Como vêm dentro do plugin, o colega não precisa

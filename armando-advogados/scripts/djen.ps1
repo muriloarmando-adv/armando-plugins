@@ -59,20 +59,27 @@ function Invoke-Djen {
   $pares = @()
   foreach ($k in $Q.Keys) { $pares += ("{0}={1}" -f $k, [uri]::EscapeDataString([string]$Q[$k])) }
   $url = $API + "?" + ($pares -join "&")
-  for ($tentativa = 1; $tentativa -le 5; $tentativa++) {
+  for ($tentativa = 1; $tentativa -le 6; $tentativa++) {
     try {
       $r = Invoke-RestMethod -Uri $url -TimeoutSec 180 -Headers @{ "Accept" = "application/json" }
-      Start-Sleep -Milliseconds $IntervaloMs
+      Start-Sleep -Milliseconds $script:IntervaloMs
       return $r
     } catch {
-      $codigo = ""
+      $codigo = 0
       if ($_.Exception.Response) { $codigo = [int]$_.Exception.Response.StatusCode }
-      $espera = [Math]::Min(60, 5 * [Math]::Pow(2, $tentativa - 1))
-      Write-Warning ("DJEN falhou (tentativa {0}/5, HTTP {1}). Aguardando {2}s. URL: {3}" -f $tentativa, $codigo, $espera, $url)
+      if ($codigo -eq 429) {
+        # O bloqueio do DJEN dura minutos, nao segundos: espera longa e desacelera
+        # o resto da coleta, senao as consultas seguintes caem em cascata.
+        $espera = 30 * $tentativa
+        $script:IntervaloMs = [Math]::Min(8000, $script:IntervaloMs + 1000)
+      } else {
+        $espera = [Math]::Min(60, 5 * [Math]::Pow(2, $tentativa - 1))
+      }
+      Write-Warning ("DJEN falhou (tentativa {0}/6, HTTP {1}). Aguardando {2}s e seguindo com intervalo de {3}ms." -f $tentativa, $codigo, $espera, $script:IntervaloMs)
       Start-Sleep -Seconds $espera
     }
   }
-  Write-Warning ("DJEN INDISPONIVEL apos 5 tentativas: {0}" -f $url)
+  Write-Warning ("DJEN INDISPONIVEL apos 6 tentativas: {0}" -f $url)
   return $null
 }
 
@@ -90,7 +97,7 @@ function ConvertTo-Texto {
 }
 
 # Heuristica de triagem criminal (ASCII-only de proposito: o '.' cobre acentos).
-$reCrimClasse = '(?i)CRIMINAL|PENAL|HABEAS|INQU.RITO|REVIS.O CRIMINAL|AGRAVO EM EXECU|EMBARGOS INFRINGENTES E DE NULIDADE|PRIS.O|BUSCA E APREENS|INTERCEPTA'
+$reCrimClasse = '(?i)CRIMINAL|PENAL|HABEAS|INQU.RITO|REVIS.O CRIMINAL|AGRAVO EM EXECU|EMBARGOS INFRINGENTES E DE NULIDADE|PRIS.O|BUSCA E APREENS|INTERCEPTA|ACUSADO|DEN.NCIA|SENTENCIADO|INFRACIONAL|SOCIOEDUCATIVA|TR.FICO|LAVAGEM'
 $reCrimOrgao  = '(?i)CRIMINAL|PENAL|J.RI|EXECU..ES PENAIS|QUINTA TURMA|SEXTA TURMA|TERCEIRA SE'
 
 function Test-Criminal {
@@ -156,9 +163,22 @@ function Get-InformativoPenal {
     $titulo = $marcadores[$i].Value.Trim()
     if ($titulo -notmatch '(?i)PENAL') { continue }
     $ini = $marcadores[$i].Index
+    # O numero do processo, o relator e o orgao julgador ficam ANTES do ramo do
+    # direito, no cabecalho da entrada. Sem isso a tese sai sem como ser citada:
+    # recua ate o rotulo "Processo" imediatamente anterior.
+    $janela = [Math]::Max(0, $ini - 1500)
+    $pre = $texto.Substring($janela, $ini - $janela)
+    $cab = [regex]::Matches($pre, '(?m)^\s*Processo\s*$')
+    if ($cab.Count -gt 0) { $ini = $janela + $cab[$cab.Count - 1].Index }
     $fim = $texto.Length
     if ($i + 1 -lt $marcadores.Count) { $fim = $marcadores[$i + 1].Index }
     $trecho = $texto.Substring($ini, $fim - $ini).Trim()
+    # corta o menu de edicoes antigas que fecha a pagina
+    $trecho = ($trecho -split '(?m)^\s*Selecione o ano')[0]
+    # tira o ruido de navegacao: metas dos ODS, atributos vazados e botao de compartilhar
+    $trecho = (($trecho -split "`n" | Where-Object {
+      $_ -notmatch '^\s*Objetivo \d+\.' -and $_ -notmatch '^\s*" target=' -and $_ -notmatch '^\s*Compartilhe'
+    }) -join "`n").Trim()
     if ($trecho.Length -lt 120) { continue }
     if ($trecho.Length -gt 6000) { $trecho = $trecho.Substring(0, 6000) + " [...]" }
     $blocos += $trecho
