@@ -1,0 +1,31 @@
+{
+  "razaoSocial": "LAWLETTER AGÊNCIA DIGITAL LTDA",
+  "cnpj": "57.005.943/0001-24",
+  "capital": 66000.00,
+  "valorQuota": 1.00,
+  "prazoIntegralizacao": "",
+  "socios": [
+    {
+      "nome": "HENRIQUE ROCHA ARMANDO",
+      "tipo": "PF",
+      "percentual": 55
+    },
+    {
+      "nome": "FELIPE CAVALCANTE CHADUD JORGE",
+      "tipo": "PF",
+      "percentual": 25
+    },
+    {
+      "nome": "SER MAIS CRIATIVO HOLDING LTDA",
+      "tipo": "PJ",
+      "representante": "[......]",
+      "quotas": 6600
+    },
+    {
+      "nome": "FC SOLUÇÕES EMPRESARIAIS LTDA",
+      "tipo": "PJ",
+      "representante": "[......]",
+      "quotas": 6600
+    }
+  ]
+}
