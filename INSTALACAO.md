@@ -1,6 +1,17 @@
 # Instalação — plugin `armando-advogados`
 
-Substitua `<ORG>` pelo nome da organização do escritório no GitHub.
+O repositório é **privado**, em `github.com/muriloarmando-adv/armando-plugins`.
+
+**`muriloarmando-adv` é uma conta pessoal, não uma organização.** Consequência prática: não basta o
+colega "estar no GitHub do escritório" — cada um precisa ser convidado como **colaborador do
+repositório**, um a um, e aceitar o convite por e-mail.
+
+Em **Settings → Collaborators → Add people**, convide cada advogado pelo usuário do GitHub ou pelo
+e-mail. Acesso de **Read** basta. Enquanto o convite não for aceito, o plugin não carrega na máquina
+daquele colega — e o sintoma é a skill simplesmente não existir, sem mensagem de erro.
+
+Migrando um dia para uma organização, os convites individuais deixam de ser necessários e o
+Caminho A abaixo passa a valer para todo mundo de uma vez.
 
 ---
 
@@ -18,7 +29,7 @@ publique:
     "armando-advogados": {
       "source": {
         "source": "github",
-        "repo": "<ORG>/armando-plugins"
+        "repo": "muriloarmando-adv/armando-plugins"
       }
     }
   },
@@ -29,9 +40,10 @@ publique:
 ```
 
 **Atenção ao repositório privado.** Managed settings entrega a configuração, mas cada máquina ainda
-precisa conseguir clonar o repo. Garanta que todos os advogados estejam na organização do GitHub com
-acesso de leitura e com o git autenticado (GitHub CLI, credential manager ou chave SSH). Se o clone
-falhar, o plugin simplesmente não carrega — e o sintoma é a skill "não existir", sem erro visível.
+precisa conseguir clonar o repo. Garanta que todos os advogados já tenham **aceitado o convite de
+colaborador** e que o git esteja autenticado na máquina (GitHub CLI, credential manager ou chave
+SSH). Se o clone falhar, o plugin simplesmente não carrega — e o sintoma é a skill "não existir",
+sem erro visível.
 
 ---
 
@@ -40,7 +52,7 @@ falhar, o plugin simplesmente não carrega — e o sintoma é a skill "não exis
 Dois comandos, uma vez só, em qualquer sessão do Claude Code:
 
 ```
-/plugin marketplace add <ORG>/armando-plugins
+/plugin marketplace add muriloarmando-adv/armando-plugins
 ```
 
 ```
@@ -67,7 +79,7 @@ Para conferir se pegou: `/plugin` e procurar `armando-advogados` na lista de ins
 >
 > Rodem esses dois comandos uma vez, dentro do Claude Code:
 >
-> `/plugin marketplace add <ORG>/armando-plugins`
+> `/plugin marketplace add muriloarmando-adv/armando-plugins`
 > `/plugin install armando-advogados@armando-advogados`
 >
 > Depois é só pedir normalmente — "analisa esse processo", "em que pé está o processo do fulano",

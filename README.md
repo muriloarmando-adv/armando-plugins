@@ -6,7 +6,7 @@ quando uma skill melhora aqui, todos recebem a melhoria.
 ## Como instalar (cada colega roda uma vez)
 
 ```
-/plugin marketplace add <ORG>/armando-plugins
+/plugin marketplace add muriloarmando-adv/armando-plugins
 ```
 
 ```
@@ -66,7 +66,7 @@ trabalho do escritório:
 {
   "extraKnownMarketplaces": {
     "armando-advogados": {
-      "source": { "source": "github", "repo": "<ORG>/armando-plugins" }
+      "source": { "source": "github", "repo": "muriloarmando-adv/armando-plugins" }
     }
   },
   "enabledPlugins": {
