@@ -149,6 +149,11 @@ Write-Host ''
 Write-Host ("=== Identificadores: " + (Split-Path $Path -Leaf) + " ===") -ForegroundColor Cyan
 Write-Host ''
 
+# Marcacao Markdown no meio da mascara esconde o identificador do regex. Um numero
+# escrito 0001219-15.**2023**.4.01.3901 - para destacar o digito trocado - passava
+# batido, e era justamente o unico invalido da peca. Remove-se a marcacao antes.
+$texto = $texto -replace '(\*\*|\*|__|_|`|~~)', ''
+
 $cpfs = @([regex]::Matches($texto, '\b\d{3}\.\d{3}\.\d{3}-\d{2}\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
 $cnpjs = @([regex]::Matches($texto, '\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
 $cnjs = @([regex]::Matches($texto, '\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
@@ -175,9 +180,18 @@ foreach ($v in $cnjs) {
     if (-not $r.Ok) { $extra = "(informado {0}, esperado {1})" -f $r.Informado, $r.Esperado }
     Show-Resultado -tipo 'CNJ' -valor $v -ok $r.Ok -extra $extra
     if (-not $r.Ok) {
-        $achados += New-Achado -Severidade 'ALTA' -Categoria 'Processo' `
-            -Mensagem ("Numero CNJ com digito verificador invalido (informado {0}, esperado {1})" -f $r.Informado, $r.Esperado) `
-            -Trecho $v
+        # Sequencia de um digito so (1111111-11.1111.1.11.1111) nao e numero errado:
+        # e ruido de OCR ou de codigo de barras, e a analise e obrigada a registra-lo
+        # como tal. Marcar ALTA aqui bloqueava a entrega por citacao deliberada.
+        if (($v -replace '\D', '') -match "^(.)\1{19}$") {
+            $achados += New-Achado -Severidade 'BAIXA' -Categoria 'Processo' `
+                -Mensagem 'Sequencia de digito unico: ruido de OCR ou de codigo de barras, nao numero de processo' -Trecho $v
+        }
+        else {
+            $achados += New-Achado -Severidade 'ALTA' -Categoria 'Processo' `
+                -Mensagem ("Numero CNJ com digito verificador invalido (informado {0}, esperado {1})" -f $r.Informado, $r.Esperado) `
+                -Trecho $v
+        }
     }
 }
 

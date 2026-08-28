@@ -213,7 +213,7 @@ def body_size(pages):
 
 
 def heading_level(t, ln, body):
-    letters = re.sub(r"[^^\W\d_]", "", t, flags=re.UNICODE) if False else re.sub(r"[\W\d_]", "", t, flags=re.UNICODE)
+    letters = re.sub(r"[\W\d_]", "", t, flags=re.UNICODE)
     upper = "".join(c for c in t if c.isupper())
     is_caps = len(letters) >= 3 and len(upper) >= len(letters) * 0.9
     short = len(t) <= 100

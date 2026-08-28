@@ -53,18 +53,26 @@ Para conferir se pegou: `/plugin` e procurar `armando-advogados` na lista de ins
 
 ## Mensagem pronta para mandar no grupo do escritório
 
-> Pessoal, as skills do escritório para o Claude estão disponíveis. Elas fazem análise de contrato
-> recebido, redação de minuta no padrão da casa, **redação de petição inicial no padrão da casa**,
-> geração de peça em papel timbrado e o card do NAJI.
+> Pessoal, as skills do escritório para o Claude estão disponíveis. São oito:
+>
+> - **análise de processo em curso** — lê os autos, diz em que pé está, qual foi o último
+>   movimento e o que vence primeiro, e entrega a ficha resumo no padrão da casa;
+> - análise de contrato recebido de terceiro;
+> - redação de minuta no padrão da casa;
+> - contrato social, alteração e consolidação de limitada;
+> - redação de petição inicial no padrão da casa;
+> - geração de peça em papel timbrado;
+> - card de tarefa do NAJI;
+> - conversão de PDF em Markdown enxuto, que gasta uma fração dos tokens de ler o PDF direto.
 >
 > Rodem esses dois comandos uma vez, dentro do Claude Code:
 >
 > `/plugin marketplace add <ORG>/armando-plugins`
 > `/plugin install armando-advogados@armando-advogados`
 >
-> Depois é só pedir normalmente — "analisa esse contrato", "faz a minuta de locação", "entra com a
-> monitória contra o fulano", "monta a tarefa no NAJI" — que a skill certa entra sozinha. Não
-> precisa chamar pelo nome.
+> Depois é só pedir normalmente — "analisa esse processo", "em que pé está o processo do fulano",
+> "analisa esse contrato", "faz a minuta de locação", "entra com a monitória", "monta a tarefa no
+> NAJI" — que a skill certa entra sozinha. Não precisa chamar pelo nome.
 
 ---
 

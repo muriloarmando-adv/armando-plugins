@@ -223,13 +223,34 @@ foreach ($m in $pares) {
 }
 
 # Valores sem extenso nenhum.
+#
+# Duas ressalvas, aprendidas em uso real:
+#   1. Linha de tabela Markdown (comeca por '|') fica de fora. Extenso em cada
+#      celula de uma tabela "Item | Valor" destroi a tabela, e o padrao da casa
+#      autoriza essa tabela. Em .docx nao ha pipe, entao a peca nao e afetada.
+#   2. O padrao exige o extenso na PRIMEIRA aparicao do valor, nao em todas. Se
+#      o valor ja aparece glosado em algum lugar, a repeticao nua nao e defeito.
+#      Sem isso o achado MEDIA vira permanente e treina o leitor a ignorar.
 # O (?![\d,]) evita casar o pedaco "R$ 983,03" de um valor malformado "R$ 983,032,00".
-$soltos = [regex]::Matches($plano, 'R\$\s*[\d\.]+,\d{2}(?![\d,])(?!\s*\()')
-if ($soltos.Count -gt 0) {
-    $lista = @($soltos | ForEach-Object { $_.Value } | Sort-Object -Unique)
+$semTabela = (($texto -split "`r?`n") | Where-Object { $_ -notmatch '^\s*\|' }) -join ' '
+$semTabela = $semTabela -replace '\s+', ' '
+
+$jaGlosados = New-Object System.Collections.Generic.HashSet[string]
+foreach ($m in $pares) {
+    if ($m.Groups[2].Value -match '(?i)(real|reais|centavo|mil|milh|bilh)') {
+        [void]$jaGlosados.Add(($m.Groups[1].Value -replace '\s', ''))
+    }
+}
+
+$soltos = [regex]::Matches($semTabela, 'R\$\s*([\d\.]+,\d{2})(?![\d,])(?!\s*\()')
+$pendentes = @($soltos |
+    Where-Object { -not $jaGlosados.Contains(($_.Groups[1].Value -replace '\s', '')) } |
+    ForEach-Object { $_.Value } | Sort-Object -Unique)
+
+if ($pendentes.Count -gt 0) {
     $achados += New-Achado -Severidade 'MEDIA' -Categoria 'Extenso' `
-        -Mensagem ("{0} valor(es) sem extenso entre parenteses — o padrao da casa exige" -f $lista.Count) `
-        -Trecho ($lista -join '   ')
+        -Mensagem ("{0} valor(es) sem extenso em nenhuma ocorrencia — o padrao da casa exige na primeira" -f $pendentes.Count) `
+        -Trecho ($pendentes -join '   ')
 }
 
 # Formato numerico errado: R$ 983,032,00

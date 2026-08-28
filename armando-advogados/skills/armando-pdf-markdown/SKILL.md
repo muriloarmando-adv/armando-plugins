@@ -1,14 +1,23 @@
 ---
 name: armando-pdf-markdown
-description: Converte PDF em Markdown enxuto antes de ler — remonta os parágrafos, marca os títulos e remove cabeçalho, rodapé e carimbo de assinatura repetidos em toda página, gastando uma fração dos tokens de ler o PDF direto. Use SEMPRE que precisar LER o conteúdo de um PDF nesta máquina (processo do PJe/eSAJ, petição, contrato, acórdão, laudo, contrato social) — inclusive quando o usuário só disser "analisa esse processo", "resume esse acórdão", "o que diz esse contrato", "lê esse PDF pra mim", "dá uma olhada nesse arquivo" — e também quando pedir explicitamente "converter PDF", "transformar PDF em markdown", "extrair o texto do PDF", "passar esse PDF pra .md", "gastar menos token com esse arquivo".
+description: Converte PDF em Markdown enxuto antes de ler — remonta os parágrafos, marca os títulos e remove cabeçalho, rodapé e carimbo de assinatura repetidos em toda página, gastando uma fração dos tokens de ler o PDF direto. Use SEMPRE que precisar LER o conteúdo de um PDF (processo do PJe/eSAJ, petição, contrato, acórdão, laudo, contrato social) — inclusive quando o usuário só disser "analisa esse processo", "resume esse acórdão", "o que diz esse contrato", "lê esse PDF pra mim", "dá uma olhada nesse arquivo" — e também quando pedir explicitamente "converter PDF", "transformar PDF em markdown", "extrair o texto do PDF", "passar esse PDF pra .md", "gastar menos token com esse arquivo".
 ---
 
 # PDF → Markdown
 
-Esta máquina **não abre PDF direto**: o `Read` nativo falha ("pdftoppm is not installed"),
-não há Python nem poppler, e abrir PDF pelo Word via COM trava. O caminho é converter primeiro.
+Ler o PDF direto gasta muito token e, em máquina Windows sem Python, nem funciona (o `Read`
+nativo falha com "pdftoppm is not installed" e abrir pelo Word via COM trava). Converta primeiro.
 
-## Como rodar
+**Escolha o motor pelo ambiente:**
+
+| Ambiente | Motor |
+|---|---|
+| Claude Code em Windows | `scripts/pdf2md.ps1` (PowerShell, sem dependência) |
+| Claude na nuvem, Cowork, Linux, Mac | `scripts/pdf2md.py` (Python + `pdfplumber`) |
+
+Os dois produzem o mesmo formato de saída e aceitam as mesmas opções.
+
+## Como rodar em Windows (Claude Code)
 
 Localize o script e converta (uma linha só):
 
@@ -23,6 +32,23 @@ Sem `-Out`, grava o `.md` ao lado do PDF. Aceita vários arquivos e pastas de um
 powershell -NoProfile -ExecutionPolicy Bypass -File $exe "C:\pasta\do\processo" -Out "C:\saida"
 ```
 
+## Como rodar na nuvem / Cowork / Linux / Mac
+
+```bash
+PDF2MD=$(ls "$CLAUDE_PLUGIN_ROOT/skills/armando-pdf-markdown/scripts/pdf2md.py" \
+            "$HOME/.claude/skills/armando-pdf-markdown/scripts/pdf2md.py" 2>/dev/null | head -1)
+python3 "$PDF2MD" processo.pdf --out processo.md
+```
+
+Se `pdfplumber` não estiver instalado, instale (`pip install pdfplumber`). Sem ele o script cai
+para `pypdf`, que não devolve a posição do texto — a remontagem de parágrafo e a remoção de
+carimbo saem bem piores, e o script avisa quando isso acontece. As opções são as mesmas, com dois
+hífens: `--manter-repetidos`, `--sem-marcas-de-pagina`, `--linhas`.
+
+> A versão PowerShell foi testada em PDF do PJe/TRF1, eSAJ/TJSP, Word, Google Docs e livro de 98
+> páginas. **A versão Python ainda não teve uma execução real** — na primeira vez que usá-la,
+> confira a saída contra o PDF antes de confiar. Se sair torta, rode com `--linhas` e reporte.
+
 Depois é só `Read` no `.md`.
 
 **Não converta o mesmo PDF duas vezes**: se já existe um `.md` ao lado, com data posterior à do
@@ -30,12 +56,12 @@ PDF, leia esse.
 
 ## Opções
 
-| Flag | Para que |
-|---|---|
-| `-ManterRepetidos` | Não remover cabeçalho/rodapé/carimbo repetidos. Use quando o carimbo importar (conferir assinatura digital, id de documento do PJe). |
-| `-SemMarcasDePagina` | Sai sem as marcas `[p. 12]`. Só use se o documento não for ser citado por página. |
-| `-Linhas` | Gera também um `.linhas.tsv` com página, posição, tamanho e negrito de cada linha crua. Use para diagnosticar saída torta. |
-| `-Abrir` | Abre o `.md` ao terminar. |
+| PowerShell | Python | Para que |
+|---|---|---|
+| `-ManterRepetidos` | `--manter-repetidos` | Não remover cabeçalho/rodapé/carimbo repetidos. Use quando o carimbo importar (conferir assinatura digital, id de documento do PJe). |
+| `-SemMarcasDePagina` | `--sem-marcas-de-pagina` | Sai sem as marcas `[p. 12]`. Só use se o documento não for ser citado por página. |
+| `-Linhas` | `--linhas` | Gera também um `.linhas.tsv` com página, posição, tamanho e negrito de cada linha crua. Use para diagnosticar saída torta. |
+| `-Abrir` | — | Abre o `.md` ao terminar. |
 
 ## O que a saída tem
 
@@ -64,13 +90,6 @@ A remoção de repetidos casa o carimbo pelos 60 primeiros caracteres, porque no
 código de conferência mudam a cada página. Isso apaga a linha inteira do eSAJ/TJSP
 ("Este documento é cópia do original, assinado digitalmente por…"). Se a tarefa for justamente
 conferir quem assinou ou o código de autenticação, rode com `-ManterRepetidos`.
-
-## Fora do Claude Code (Claude na nuvem / Cowork)
-
-O script é PowerShell e só roda em máquina Windows com Claude Code. No ambiente da nuvem, use a
-skill pública `pdf` (que tem Python e poppler) e depois aplique o mesmo cuidado a mão: junte as
-linhas quebradas em parágrafo e apague a linha de carimbo que se repete em toda página, que é
-onde o token vai embora.
 
 ## Para o usuário converter sozinho, sem abrir o Claude
 

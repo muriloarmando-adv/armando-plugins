@@ -19,18 +19,27 @@ Depois disso, as skills abaixo passam a estar disponíveis em qualquer sessão.
 
 | Skill | Para que serve |
 |---|---|
+| `armando-analise-processo` | Analisa processo judicial **já em curso** — lê os autos na ordem certa, fixa o último movimento e o prazo em curso, e entrega a FICHA RESUMO DO PROCESSO, o RESUMO PARA O CLIENTE, o PARECER ESTRATÉGICO ou a TRIAGEM DE PRAZO. Padrão extraído de 13 fichas do Drive e de 7 acervos completos de autos em PJe, PJe-JT, eSAJ e PJe híbrido. |
 | `armando-analise-contrato` | Analisa contrato recebido de terceiro. Modo 1: análise inicial cláusula a cláusula, com página dispositiva ao final. Modo 2: memorando de cotejo quando a contraparte devolve a minuta alterada. |
 | `armando-elaborar-contrato` | Redige minuta nova no padrão da casa — preâmbulo, cláusulas numeradas, bloco de disposições gerais, foro com renúncia. |
+| `armando-contrato-social` | Contrato social, alteração e consolidação de sociedade limitada — preâmbulo apto a arquivamento, quóruns conferidos contra a Lei 14.451/2022, apuração de haveres, exclusão extrajudicial. |
 | `armando-peticao-inicial` | Redige petição inicial no padrão da casa — endereçamento, preâmbulo, seções em romano, tutela de urgência, rol de pedidos, valor da causa e bloco de assinaturas. Padrão extraído de 21 iniciais do Drive. |
 | `armando-timbrado` | Gera o `.docx` em papel timbrado, Book Antiqua 12, entrelinha 1,5, 8 pt entre parágrafos. |
 | `armando-naji-tarefa` | Monta o card de tarefa no template oficial do NAJI. |
 | `armando-pdf-markdown` | Converte PDF em Markdown enxuto antes de ler — remonta parágrafos, marca títulos e remove o carimbo repetido em toda página. Gasta uma fração dos tokens de ler o PDF direto. Não faz OCR. |
 
-Em `scripts/` vão também as três verificações mecânicas da petição inicial —
-`revisar-inicial.ps1` (resíduo de trabalho, identificador divergente, numeração, requisitos do
-art. 319), `extenso.ps1` (confere cada par `R$ X (extenso)` e gera o extenso avulso) e
-`validar-identificadores.ps1` (dígito verificador de CPF, CNPJ e número CNJ). Aceitam `.docx`,
-`.md` e `.txt`, e saem com código `1` quando há achado grave.
+Em `scripts/` vão também as verificações mecânicas — `revisar-inicial.ps1` (resíduo de trabalho,
+identificador divergente, numeração, requisitos do art. 319), `extenso.ps1` (confere cada par
+`R$ X (extenso)` e gera o extenso avulso) e `validar-identificadores.ps1` (dígito verificador de
+CPF, CNPJ e número CNJ). Aceitam `.docx`, `.md` e `.txt`, e saem com código `1` quando há achado
+grave.
+
+E o **`mapear-autos.ps1`**, motor da análise de processo: recebe os autos (`.md` do `pdf2md.ps1`,
+ou o PDF direto) e devolve um mapa navegável — alerta de extrato vencido, números CNJ com dígito
+verificador conferido, campos da capa, o índice oficial do sistema, as fronteiras de peça por
+assinatura eletrônica, a linha do tempo com as datas futuras destacadas, os prazos mencionados e
+os alertas de severidade ALTA. Serve para **não** ler 375 páginas: lê-se o mapa e abre-se só o que
+importa, por faixa de linha. Ele localiza; não interpreta e não conta prazo.
 
 Vai junto também o agente **`jurisprudencia`** (`agents/jurisprudencia.md`), que pesquisa precedentes
 no Jus IA e é acionado pela skill de análise para embasar tese. Como vêm dentro do plugin, o colega não precisa
