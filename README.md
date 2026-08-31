@@ -57,6 +57,18 @@ Edite os arquivos em `armando-advogados/skills/`, suba a `version` no
 `armando-advogados/.claude-plugin/plugin.json` e no `.claude-plugin/marketplace.json`, e faça push.
 Os colegas recebem a atualização no próximo `/plugin marketplace update`.
 
+**Antes do push, rode a conferência de `description`:**
+
+```
+armando-advogados\scripts\conferir-descricoes.ps1
+```
+
+A `description` do `SKILL.md` é o único texto que o modelo lê para decidir se a skill entra, e ela
+tem **limite de 1024 caracteres**. Passando disso a skill é recusada no carregamento — e o sintoma
+é ela simplesmente não existir, sem mensagem de erro. Já aconteceu com duas skills da casa sem que
+ninguém percebesse. O script mede em caracteres e em bytes, cobra pelo maior dos dois (em português
+a diferença chega a 40, por causa dos acentos) e sai com código `1` quando alguma estoura.
+
 ## Instalação automática (opcional)
 
 Para não depender de cada um rodar os comandos, coloque no `.claude/settings.json` do repositório de
