@@ -9,30 +9,16 @@ Passagem obrigatória antes de entregar. Os itens marcados com ⚠️ são defei
 Os três scripts em `scripts/` do plugin cobrem, por aritmética e expressão regular, os itens **1, 2 (parcial), 5 (parcial)** e boa parte do **7** desta lista. Rode-os antes de ler a peça: eles liberam a leitura para o que só a leitura resolve.
 
 ```powershell
-& "$AA\scripts\revisar-inicial.ps1"          -Path "<peça>"
-& "$AA\scripts\extenso.ps1"                  -Path "<peça>"
-& "$AA\scripts\validar-identificadores.ps1"  -Path "<peça>"
+& "$AA\revisar-inicial.ps1"          -Path "<peça>"
+& "$AA\extenso.ps1"                  -Path "<peça>"
+& "$AA\validar-identificadores.ps1"  -Path "<peça>"
 ```
 
-> `$AA` e a raiz do plugin, e nao um caminho fixo: ela muda entre a maquina do
-> escritorio, a nuvem e o Cowork. Obtenha-a uma vez por sessao, antes de rodar
-> qualquer script acima:
->
-> ```powershell
-> $AA = @($env:CLAUDE_PLUGIN_ROOT,
->         "$env:USERPROFILE\.claude\plugins\marketplaces\armando-advogados\armando-advogados",
->         "$env:USERPROFILE\armando-plugins\armando-advogados") |
->       Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
-> ```
->
-> ```bash
-> AA=$(ls -d "$CLAUDE_PLUGIN_ROOT" \
->         "$HOME/.claude/plugins/marketplaces/armando-advogados/armando-advogados" \
->         "$HOME/armando-plugins/armando-advogados" 2>/dev/null | head -1)
-> ```
->
-> Saindo vazio, o plugin nao esta instalado: **diga isso e pare**, em vez de
-> adivinhar caminho.
+> `$AA` e a pasta dos scripts. Quando esta skill carrega, o prompt informa o
+> **diretorio-base** dela; chame-o de `<base>`. Tente, nesta ordem,
+> `<base>/scripts` e `<base>/../../scripts` — no chat a pasta vem **dentro** da
+> skill, no plugin instalado ela fica na **raiz** dele. Nenhum caminho absoluto
+> serve nos dois. Saindo vazio, **pare e diga que nao localizou os scripts**.
 
 
 | Script | O que apanha |
