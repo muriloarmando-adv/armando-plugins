@@ -8,7 +8,7 @@ Sempre a mesma ordem, em qualquer ramo e em qualquer sistema. Cada passe fecha u
 
 **Pergunta:** de quando é este retrato dos autos, e quanto tempo ele não cobre?
 
-A regra das quatro âncoras está na **seção 3 do `SKILL.md`** e o `mapear-autos.ps1` faz a conta. Aqui só o que fazer com o resultado:
+A regra das cinco âncoras está na **seção 3 do `SKILL.md`** e o `mapear-autos` faz a conta. Aqui só o que fazer com o resultado:
 
 **Saída:** uma frase. *"Extrato gerado em 09/11/2025; última atividade em 16/10/2025; hoje é 27/08/2026 — 315 dias de tramitação não retratados."*
 
@@ -59,6 +59,14 @@ Leia o índice **de baixo para cima**. A peça mais recente é a última linha.
 **Armadilha central:** o índice é um índice, **não um inventário**. Peça com visibilidade restrita não aparece — no PJe-JT a contestação protocolada antes da frustração da conciliação (art. 22 da Res. CSJT 185/2017) some do sumário embora esteja fisicamente nos autos. **Sempre confira o índice contra as fronteiras de peça do mapa.** Concluir revelia onde há defesa é o pior erro possível.
 
 Segunda armadilha: no extrato do PJe a coluna da **hora** quebra para a linha vizinha, de modo que a hora impressa junto de um ID pode ser do lançamento anterior. Para datar com precisão, use a URL de validação — no PJe-JT os 12 primeiros dígitos são `AAMMDDHHMMSS`.
+
+**Terceira, e é a que ninguém procura: a foliação reinicia?** Antes de sair do índice, percorra as marcas de folha do começo ao fim do arquivo e veja se a numeração cai. A seção 0.2 do mapa faz isso sozinha e mostra em que página do PDF cada queda acontece.
+
+**Queda de foliação significa peça apensada** — o arquivo tem mais de uma autuação dentro. Num extrato real do e-STJ a folha subia até 830 e voltava para 1 na página 813 do PDF: dali em diante começava um apenso. A consequência é imediata e vale para a análise inteira:
+
+- **O mesmo número de folha existe duas vezes no mesmo PDF.** Toda citação de folha a partir do reinício tem de dizer **de qual autuação** — `fl. 12 do apenso`, nunca `fl. 12`. Uma citação ambígua manda o leitor à página errada, e o leitor pode ser o juízo.
+- **Conte quantos blocos existem** e registre em `COBERTURA DO ARQUIVO` (ver `modelos-de-entrega.md`): é a diferença entre o que a capa declara e o que o arquivo traz.
+- **Onde não há carimbo de folha, não há o que verificar.** No PJe e no eproc a foliação não é carimbada, e o que parece marca de folha é referência do corpo do texto (`conforme fls. 44`), que aponta para outra autuação. O mapa se recusa a concluir nesses casos, e você também: cite por ID ou evento.
 
 ---
 

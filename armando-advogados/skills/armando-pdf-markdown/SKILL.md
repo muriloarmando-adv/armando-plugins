@@ -46,8 +46,8 @@ carimbo saem bem piores, e o script avisa quando isso acontece. As opções são
 hífens: `--manter-repetidos`, `--sem-marcas-de-pagina`, `--linhas`.
 
 > A versão PowerShell foi testada em PDF do PJe/TRF1, eSAJ/TJSP, Word, Google Docs e livro de 98
-> páginas. **A versão Python ainda não teve uma execução real** — na primeira vez que usá-la,
-> confira a saída contra o PDF antes de confiar. Se sair torta, rode com `--linhas` e reporte.
+> páginas. A versão Python foi testada em extrato e-STJ de **844 páginas e 69 MB** (pico de 935 MB
+> de memória) e no mesmo PJe/TRF1 de 375 páginas. Saindo torta, rode com `--linhas` e reporte.
 
 Depois é só `Read` no `.md`.
 
@@ -61,15 +61,28 @@ PDF, leia esse.
 | `-ManterRepetidos` | `--manter-repetidos` | Não remover cabeçalho/rodapé/carimbo repetidos. Use quando o carimbo importar (conferir assinatura digital, id de documento do PJe). |
 | `-SemMarcasDePagina` | `--sem-marcas-de-pagina` | Sai sem as marcas `[p. 12]`. Só use se o documento não for ser citado por página. |
 | `-Linhas` | `--linhas` | Gera também um `.linhas.tsv` com página, posição, tamanho e negrito de cada linha crua. Use para diagnosticar saída torta. |
+| — | `--paginas 1-100` | Converte só essa faixa de páginas. As marcas `[p. N]` continuam sendo a numeração **do PDF inteiro**, não a da faixa. |
+| — | `--lote N` | Páginas por lote interno (padrão 100). É o dial de memória: baixe para 50 em ambiente apertado. |
 | `-Abrir` | — | Abre o `.md` ao terminar. |
+
+> **`--paginas` não é um recorte exato do arquivo inteiro.** O tamanho do corpo do texto — de que
+> depende a detecção de título — é a moda das páginas presentes, então uma faixa pode marcar como
+> `##` uma linha que o documento inteiro deixaria como parágrafo. Para citar por folha tanto faz;
+> para comparar duas conversões, converta o arquivo inteiro.
 
 ## O que a saída tem
 
 - Parágrafos remontados (a linha justificada do PDF vira parágrafo corrido).
 - Títulos em `#`/`##`/`###`, detectados por tamanho de fonte, negrito e caixa alta.
 - Marcas `[p. 12]` para citar a folha certa.
-- Primeira linha em comentário HTML com o nome do arquivo, o número de páginas e quantas
-  linhas de carimbo foram removidas.
+- **Sem a marca d'água vertical.** O carimbo lateral ("Para verificar a assinatura acesse…") sai do
+  PDF rodado e picado, uma letra por linha, interpolado no meio dos parágrafos — num extrato e-STJ
+  eram 63.444 palavras, 30% a 40% das linhas do `.md`. O `pdf2md.py` descarta texto rotacionado
+  (`upright=False`) e diz no cabeçalho quantas palavras foram embora. **Sem `pdfplumber`, caindo
+  para `pypdf`, esse filtro não se aplica** — e o script avisa.
+- Primeira linha em comentário HTML com o nome do arquivo, o número de páginas, **a data de criação
+  do PDF** (é a 5ª âncora de atualidade da `armando-analise-processo`), quantas linhas de carimbo
+  foram removidas e quantas palavras rotacionadas foram descartadas.
 
 ## Limites — leia antes de confiar na saída
 
@@ -90,6 +103,16 @@ A remoção de repetidos casa o carimbo pelos 60 primeiros caracteres, porque no
 código de conferência mudam a cada página. Isso apaga a linha inteira do eSAJ/TJSP
 ("Este documento é cópia do original, assinado digitalmente por…"). Se a tarefa for justamente
 conferir quem assinou ou o código de autenticação, rode com `-ManterRepetidos`.
+
+**Identificador nunca é descartado, mesmo repetindo.** Linha que contenha `(e-STJ Fl.`, `Fl.` ou
+`fls.` seguido de dígito, `ID `, `Evento ` ou `Num. ` seguido de alfanumérico é imune à remoção — o
+carimbo de folha repete em toda página por definição, e era exatamente por isso que ia embora junto
+com o cabeçalho: num extrato e-STJ de 844 páginas, das 858 marcas `(e-STJ Fl.N)` sobravam 404, e a
+última folha visível no `.md` era a 822 quando a real era a 830. O cabeçalho diz quantas linhas
+foram preservadas por esse motivo.
+
+Ainda assim, **para analisar processo converta sempre com `-ManterRepetidos` / `--manter-repetidos`**
+— é o que a `armando-analise-processo` manda na seção 2 dela.
 
 ## Para o usuário converter sozinho, sem abrir o Claude
 

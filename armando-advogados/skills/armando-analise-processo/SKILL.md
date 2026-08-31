@@ -13,7 +13,7 @@ Padrão extraído de **13 fichas e resumos reais do Drive**, de **três peças o
 
 ---
 
-## 0. Três perguntas antes do caso
+## 0. Quatro perguntas antes do caso
 
 **1. De quando é este retrato?** Ver seção 3.
 
@@ -23,6 +23,10 @@ Padrão extraído de **13 fichas e resumos reais do Drive**, de **três peças o
 - páginas sem camada de texto: o que está nelas é desconhecido, e costuma ser a prova.
 
 **3. De que lado estamos?** Sem isso a análise sai do lado errado — é o defeito nº 1 do acervo. Se não der para apurar, escreva `CLIENTE: não apurado` no topo e não emita prognóstico.
+
+**4. O escritório, seus sócios ou seus advogados aparecem na narrativa dos fatos — e não apenas no cabeçalho?** Procure os nomes da casa no corpo da denúncia, da inicial e da prova, não só no bloco de procuradores. Num caso real um sócio figurava nominalmente na denúncia como a autoridade que subscreveu o ato administrativo central da imputação: não era denunciado, e a defesa até se servia desses atos — mas é questão de **testemunha e de impedimento**, e decide-se antes de protocolar, não depois.
+
+Havendo coincidência de nome, ela vai para `RISCOS` como providência **anterior a qualquer protocolo**. E vai como coincidência: homonímia é comum, e a identidade **nunca se afirma sem confirmação** — escreva *"consta o nome X, que coincide com o do sócio X; confirmar se é a mesma pessoa"*, jamais *"o sócio X assinou"*.
 
 ---
 
@@ -48,16 +52,20 @@ Uma quarta, rara: página que rende **erro de PostScript** (`ERROR: undefined / 
 
 ## 2. Preparar os autos
 
-Dois passos. **Ambos rodam em PowerShell**; a navegação depois (`grep`, `sed`) roda no Bash. São shells diferentes — não misture num bloco só.
+Dois passos, converter e mapear. **Escolha a coluna pelo ambiente**; a navegação depois (`grep`, `sed`) roda no Bash em qualquer um dos dois.
 
-```powershell
-& "<plugin>\skills\armando-pdf-markdown\scripts\pdf2md.ps1" "autos.pdf" -Out "autos.md"
-& "<plugin>\scripts\mapear-autos.ps1" -Path "autos.md" -Out "mapa.md"
-```
+| Passo | Windows / PowerShell | Nuvem, Cowork, Linux, Mac / Python |
+|---|---|---|
+| **1. Converter** | `& "<plugin>\skills\armando-pdf-markdown\scripts\pdf2md.ps1" "autos.pdf" -Out "autos.md" -ManterRepetidos` | `python3 "<plugin>/skills/armando-pdf-markdown/scripts/pdf2md.py" autos.pdf --out autos.md --manter-repetidos` |
+| **2. Mapear** | `& "<plugin>\scripts\mapear-autos.ps1" -Path "autos.md" -Out "mapa.md"` | `python3 "<plugin>/scripts/mapear-autos.py" autos.md --out mapa.md` |
 
-Recebendo um `.md` já convertido, salte o primeiro passo. O `mapear-autos.ps1` também aceita o PDF direto e converte sozinho. **Use sempre `-Out`**: no console o Windows corrompe os acentos.
+**Converta sempre com `-ManterRepetidos` / `--manter-repetidos`**, porque o carimbo de folha repete em toda página — é o que o define — e sem a opção ele é descartado junto com o cabeçalho: **sem o carimbo, as âncoras 2 e 3 da seção 3 mentem** e a citação por folha fica impossível.
 
-O mapa devolve, em dez seções: as quatro âncoras de data com o cálculo do vencimento · **o que o arquivo não mostra** (páginas sem texto, em faixas, e o teste de acentuação) · números CNJ com dígito verificador conferido · campos da capa e partes · o índice oficial do sistema · as fronteiras de peça por assinatura, com a cobertura declarada · peças por título · **peças por fórmula** · a linha do tempo com as datas futuras destacadas · prazos · alertas ALTA e MÉDIA · valores e OAB.
+Em Windows use também `-Out`: **no console o PowerShell corrompe os acentos**. Na versão Python o console já sai em UTF-8, mas `--out` continua sendo o caminho normal — o mapa é para ser lido em arquivo.
+
+Recebendo um `.md` já convertido, salte o primeiro passo. O `mapear-autos` também aceita o PDF direto e converte sozinho.
+
+O mapa devolve, em seções numeradas: as **cinco** âncoras de data com o cálculo do vencimento · **o que o arquivo não mostra** (páginas sem texto, em faixas, e o teste de acentuação) · **a continuidade da foliação, com os reinícios** · números CNJ com dígito verificador conferido · campos da capa e partes · o índice oficial do sistema · as fronteiras de peça por assinatura, com a cobertura declarada · peças por título · **peças por fórmula** · a linha do tempo com as datas futuras destacadas · prazos · alertas ALTA e MÉDIA · valores e OAB.
 
 **Ele localiza; não interpreta, não classifica e não conta prazo.** Rótulo de peça é palpite: uma linha pode vir rotulada errado, e peça sem título não aparece na tabela de títulos — por isso existe a de fórmulas. **Nunca conclua "não há sentença nos autos" a partir do mapa.**
 
@@ -65,16 +73,17 @@ O mapa devolve, em dez seções: as quatro âncoras de data com o cálculo do ve
 
 ## 3. De quando é este retrato — a regra única
 
-Quatro âncoras, **e vale sempre a mais recente**:
+Cinco âncoras, **e vale sempre a mais recente**:
 
 1. **URL de validação** do PJe-JT — os 12 primeiros dígitos são `AAMMDDHHMMSS`. É a única que data peça sem rodapé de assinatura.
 2. **Última linha do índice oficial.**
 3. **Última assinatura eletrônica** no rodapé.
-4. **Data mais recente do texto** — só quando nenhuma das três existe (é o caso do eSAJ depois da conversão). Vale como estimativa e **se declara como inferida**.
+4. **Metadados do arquivo** — o `CreationDate` do PDF (`pdfinfo`, ou o cabeçalho HTML que o `pdf2md` grava na primeira linha do `.md`). É a única que existe mesmo quando o texto não traz data nenhuma: num extrato real do e-STJ era `04/02/2026`, e sem ela a análise teria datado o retrato em janeiro de 2025 — treze meses de erro.
+5. **Data mais recente do texto** — só quando nenhuma das quatro existe (é o caso do eSAJ depois da conversão). Vale como estimativa e **se declara como inferida**.
 
-A `Data de geração do extrato` é outra coisa: diz quando o PDF foi tirado, não quando o processo se moveu. Registre as duas.
+**A `Data de geração do extrato` e o `CreationDate` dizem a mesma coisa e não dizem o movimento:** ambos marcam quando o PDF foi tirado, não quando o processo andou. Registre a data do retrato e a do último ato — as duas, sempre, e nomeadas.
 
-O `mapear-autos.ps1` monta essa tabela e faz a conta. **Confira-a**: usar uma âncora só já errou por 48 dias num caso real e falhou inteiramente noutro.
+O `mapear-autos` monta essa tabela e faz a conta. **Confira-a**: usar uma âncora só já errou por 48 dias num caso real e falhou inteiramente noutro.
 
 Quando as âncoras divergem muito, o arquivo pode estar truncado. Diga isso.
 
@@ -108,7 +117,7 @@ Cinco fatos valem para todos:
 - **Assinante servidor ou magistrado = ato do juízo** — nele mora o prazo. **Advogado = peça de parte** — nela mora a tese, nunca o prazo.
 - **Data de assinatura ≠ data de juntada ≠ data do ato.** Três datas para um evento; diga qual você usa.
 - **O índice é um índice, não um inventário.** No PJe-JT a contestação protocolada antes da conciliação some do sumário e está nos autos. Concluir revelia onde há defesa é o pior erro possível.
-- **Numeração é múltipla e conflitante** — folha carimbada, numeração interna da peça, ID/evento, foliação do físico. Cite pelo **ID ou evento**; citando folha, diga de qual numeração.
+- **Numeração é múltipla e conflitante** — folha carimbada, numeração interna da peça, ID/evento, foliação do físico. Cite pelo **ID ou evento**; citando folha, diga de qual numeração. **E a foliação pode reiniciar dentro do mesmo arquivo**, quando começa um apenso: aí o mesmo número de folha existe duas vezes, e a citação tem de dizer de qual autuação. O Passe 3 de `ordem-de-leitura.md` traz a verificação.
 
 ---
 
@@ -156,13 +165,13 @@ A ficha é a espinha; os outros três se montam a partir dela. **Na dúvida, e s
 
 **`referencias/controle-de-qualidade.md`** — 81 verificações em nove tabelas, varrível numa passada. Os exemplos reais do acervo estão no apêndice, fora do caminho.
 
-Automatize o mecânico primeiro:
+Automatize o mecânico primeiro. Mesma escolha de coluna da seção 2:
 
-```powershell
-& "<plugin>\scripts\mapear-autos.ps1"             -Path "<autos.md>"  -Out "<mapa.md>"
-& "<plugin>\scripts\validar-identificadores.ps1"  -Path "<análise>"
-& "<plugin>\scripts\extenso.ps1"                  -Path "<análise>"
-```
+| O que confere | Windows / PowerShell | Nuvem, Cowork, Linux, Mac / Python |
+|---|---|---|
+| Mapa dos autos | `& "<plugin>\scripts\mapear-autos.ps1" -Path "<autos.md>" -Out "<mapa.md>"` | `python3 "<plugin>/scripts/mapear-autos.py" "<autos.md>" --out "<mapa.md>"` |
+| CPF, CNPJ e nº CNJ | `& "<plugin>\scripts\validar-identificadores.ps1" -Path "<análise>"` | `python3 "<plugin>/scripts/validar-identificadores.py" --path "<análise>"` |
+| Valor por extenso | `& "<plugin>\scripts\extenso.ps1" -Path "<análise>"` | `python3 "<plugin>/scripts/extenso.py" --path "<análise>"` |
 
 ---
 

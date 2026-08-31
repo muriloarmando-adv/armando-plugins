@@ -42,6 +42,11 @@ LINK DA PASTA:
 ANALISTA:                      ← o nome de uma pessoa. Não sabendo, `não apurado` —
                                  nunca o nome da skill ou do fluxo.
 ANÁLISE FECHADA EM:            ← data de corte da consulta aos autos. Obrigatório.
+COBERTURA DO ARQUIVO:          ← o que a capa DECLARA existir contra o que o arquivo
+                                 CONTÉM, em volumes, apensos e faixa de folhas.
+                                 Obrigatório. Ex.: `capa declara 1 volume e 12 apensos;
+                                 este arquivo traz 1 volume (fls. 1-830) e 1 apenso
+                                 (fls. 1-32) — 11 apensos não estão aqui`.
 
 RESUMO DOS FATOS
 
@@ -95,6 +100,10 @@ PRÓXIMO PASSO
 ```
 
 **As três últimas rubricas são obrigatórias e vão sempre por extenso**, cada uma com seu título. Amontoá-las em `OBSERVAÇÕES` foi o defeito que mais derrubou a nota nos testes: sem elas a ficha descreve o processo e não diz o que fazer com ele — que é a única coisa que ela existe para dizer.
+
+**`COBERTURA DO ARQUIVO` é obrigatória na mesma medida.** Ela responde *quanto dos autos eu tenho na mão* — e num caso real foi a informação mais importante da entrega inteira: a capa dizia **1 volume e 12 apensos**, e o arquivo tinha **1 volume e 1 apenso**. Sem esse campo, a ficha descreve com segurança um processo que só conhece pela oitava parte, e todo `não há nos autos` que ela escreve é falso.
+
+Escreva os dois lados, sempre nesta ordem — o que a capa declara, o que o arquivo contém —, em volumes, apensos e faixa de folhas. Não conferindo o número, `não apurado`, e a diferença vai para `PENDÊNCIAS`. Quem apura os blocos é a seção 0.2 do mapa (reinício de foliação = apenso novo); onde não há carimbo de folha, diga isso em vez de estimar.
 
 **Quando um dos polos ainda não falou.** É o normal em pasta que entra antes da primeira peça: o bloco de teses da outra parte seria vazio. Mantenha a rubrica e rotule o bloco — `nenhuma tese foi deduzida nos autos; as linhas abaixo são construção desta análise`. A utilidade inteira da ficha para o escritório está aí, e o rótulo impede que a construção seja lida como alegação existente.
 

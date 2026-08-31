@@ -1023,14 +1023,80 @@ function Get-NormKey {
     return $k.Trim()
 }
 
+# Padroes IMUNES a remocao de repetidos. O carimbo de folha repete em toda pagina
+# por definicao - e era exatamente por isso que ia embora junto com o cabecalho.
+# Num extrato e-STJ de 844 paginas, das 855 ocorrencias de "(e-STJ Fl.N)" sobrava
+# menos da metade, e a ultima folha visivel no .md era a 822 quando a real era a
+# 830. Sem o carimbo, as ancoras 2 e 3 da secao 3 da armando-analise-processo
+# mentem, e nao se cita peca por folha.
+$RX_IMUNES = @(
+    '\(e-STJ\s*Fl\.',          # e-STJ / STJ
+    '\bFl\.?\s*\d',            # foliacao "Fl. 830"
+    '\bfls\.',                 # "fls. 145/336"
+    '\bID\s+[0-9A-Za-z]',      # PJe: "ID 037030e"
+    '\bEvento\s+\d',           # eproc: "Evento 12"
+    '\bNum\.\s*\d'             # PJe-JT: "Num. 3c1f2a9"
+)
+
+function Test-Imune {
+    <# A linha carrega identificador de folha, documento ou evento? Entao fica,
+       ainda que repita em toda pagina. #>
+    param([string]$t)
+    foreach ($rx in $RX_IMUNES) {
+        if ([regex]::IsMatch($t, $rx, [Text.RegularExpressions.RegexOptions]::IgnoreCase)) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Get-DataCriacaoPdf {
+    <# /CreationDate do PDF -> 'dd/MM/yyyy HH:mm'. E a QUINTA ancora de atualidade
+       da armando-analise-processo: diz quando o PDF foi tirado, nao quando o
+       processo se moveu - mas num caso real era o unico marcador recente do
+       arquivo, e sem ele a analise teria errado o retrato em treze meses.
+       Le os bytes crus: o /Info raramente vive em stream comprimido. #>
+    param([string]$Path)
+    $m = $null
+    try {
+        $fs = [IO.File]::OpenRead($Path)
+        try {
+            $len = [int][Math]::Min([long]2MB, $fs.Length)
+            $buf = New-Object byte[] $len
+            $rx = '/CreationDate\s*\(\s*D?:?\s*(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?'
+            # o /Info costuma estar na cauda; nao achando, tenta a cabeca
+            [void]$fs.Seek(-$len, [IO.SeekOrigin]::End)
+            [void]$fs.Read($buf, 0, $len)
+            $m = [regex]::Match([Text.Encoding]::ASCII.GetString($buf), $rx)
+            if (-not $m.Success) {
+                [void]$fs.Seek(0, [IO.SeekOrigin]::Begin)
+                [void]$fs.Read($buf, 0, $len)
+                $m = [regex]::Match([Text.Encoding]::ASCII.GetString($buf), $rx)
+            }
+        }
+        finally { $fs.Dispose() }
+    }
+    catch { return $null }
+    if (-not $m -or -not $m.Success) { return $null }
+    $mes = [int]$m.Groups[2].Value
+    $dia = [int]$m.Groups[3].Value
+    if ($mes -lt 1 -or $mes -gt 12 -or $dia -lt 1 -or $dia -gt 31) { return $null }
+    $hh = if ($m.Groups[4].Success) { $m.Groups[4].Value } else { '00' }
+    $mi = if ($m.Groups[5].Success) { $m.Groups[5].Value } else { '00' }
+    return ('{0}/{1}/{2} {3}:{4}' -f $m.Groups[3].Value, $m.Groups[2].Value,
+        $m.Groups[1].Value, $hh, $mi)
+}
+
 function Convert-DocToMarkdown {
-    param($Doc, [string]$SourceName, [bool]$StripRepeated, [bool]$PageMarks)
+    param($Doc, [string]$SourceName, [bool]$StripRepeated, [bool]$PageMarks,
+          [string]$CriadoEm)
 
     $all = @($Doc.Lines | Where-Object { $_.Text -and $_.Text.Trim().Length -gt 0 })
     if ($all.Count -eq 0) { return $null }
 
     # --- cabecalhos / rodapes repetidos
     $dropped = 0
+    $salvos = 0
     $blocked = @{}
     $blockedPrefix = @{}
     if ($StripRepeated -and $Doc.PageCount -ge 3) {
@@ -1060,12 +1126,17 @@ function Convert-DocToMarkdown {
     foreach ($l in $all) {
         $inBand = ($l.Y -gt 0.87 * $l.PageH) -or ($l.Y -lt 0.13 * $l.PageH)
         $t = $l.Text.Trim()
+        $ehImune = Test-Imune $t
         if ($StripRepeated) {
             $k = Get-NormKey $t
-            if ($blocked.ContainsKey($k)) { $dropped++; continue }
-            if ($k.Length -ge 60 -and $blockedPrefix.ContainsKey($k.Substring(0, 60))) { $dropped++; continue }
+            $repetida = $blocked.ContainsKey($k) -or
+                        ($k.Length -ge 60 -and $blockedPrefix.ContainsKey($k.Substring(0, 60)))
+            if ($repetida) {
+                # imune: repete, mas carrega folha/ID/evento. Fica.
+                if ($ehImune) { $salvos++ } else { $dropped++; continue }
+            }
         }
-        if ($inBand -and $t -match '^(p(a|á)g(ina)?\.?\s*)?\d{1,4}(\s*(/|de)\s*\d{1,4})?$') { $dropped++; continue }
+        if ($inBand -and -not $ehImune -and $t -match '^(p(a|á)g(ina)?\.?\s*)?\d{1,4}(\s*(/|de)\s*\d{1,4})?$') { $dropped++; continue }
         [void]$kept.Add($l)
     }
     if ($kept.Count -eq 0) { return $null }
@@ -1199,13 +1270,15 @@ function Convert-DocToMarkdown {
     }
 
     $header = "<!-- $SourceName | $($Doc.PageCount) pag."
+    if ($CriadoEm) { $header += " | PDF criado em $CriadoEm" }
     if ($dropped -gt 0) { $header += " | $dropped linhas de cabecalho/rodape removidas" }
+    if ($salvos -gt 0) { $header += " | $salvos preservadas por carregarem folha/ID" }
     $header += " -->"
 
     $text = $header + "`n`n" + (($md -join "`n`n"))
     $text = [regex]::Replace($text, '(\r?\n){3,}', "`n`n")
     $text = [regex]::Replace($text, '[ \t]+(\r?\n)', '$1')
-    return [pscustomobject]@{ Text = $text; Dropped = $dropped }
+    return [pscustomobject]@{ Text = $text; Dropped = $dropped; Salvos = $salvos }
 }
 
 # ------------------------------------------------------------------ execucao
@@ -1233,8 +1306,10 @@ function Convert-OnePdf {
         Write-Host "     diagnostico: $(Split-Path $tsv -Leaf)" -ForegroundColor DarkGray
     }
 
+    $criadoEm = Get-DataCriacaoPdf $Src
     $r = Convert-DocToMarkdown -Doc $doc -SourceName ([IO.Path]::GetFileName($Src)) `
-        -StripRepeated (-not $ManterRepetidos) -PageMarks (-not $SemMarcasDePagina)
+        -StripRepeated (-not $ManterRepetidos) -PageMarks (-not $SemMarcasDePagina) `
+        -CriadoEm $criadoEm
     if ($null -eq $r) {
         Write-Host "  ! Nada de texto aproveitavel." -ForegroundColor Red
         return $null
@@ -1252,6 +1327,12 @@ function Convert-OnePdf {
             $doc.PageCount, $pdfKb, $chars, $tok) -ForegroundColor DarkGray
     if ($r.Dropped -gt 0) {
         Write-Host ("     {0} linhas repetidas de cabecalho/rodape removidas" -f $r.Dropped) -ForegroundColor DarkGray
+    }
+    if ($r.Salvos -gt 0) {
+        Write-Host ("     {0} linhas repetidas PRESERVADAS (carregam folha/ID/evento)" -f $r.Salvos) -ForegroundColor DarkGray
+    }
+    if ($criadoEm) {
+        Write-Host ("     PDF criado em {0} (5a ancora de atualidade)" -f $criadoEm) -ForegroundColor DarkGray
     }
     if ($doc.PageCount -gt 0 -and ($chars / $doc.PageCount) -lt 200) {
         Write-Host "     AVISO: quase nao ha texto por pagina - PDF provavelmente digitalizado." -ForegroundColor Yellow

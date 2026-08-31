@@ -149,6 +149,67 @@ function Get-Fonte {
     return $destino
 }
 
+function Get-DataCriacaoPdf {
+    <# /CreationDate do PDF -> 'dd/MM/yyyy HH:mm'. QUINTA ancora de atualidade: num
+       caso real (extrato e-STJ de 844 folhas) era o unico marcador recente do
+       arquivo, e sem ele a analise teria datado o retrato treze meses antes.
+       Le os bytes crus: o /Info raramente vive em stream comprimido. #>
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path)) { return $null }
+    $m = $null
+    try {
+        $fs = [IO.File]::OpenRead($Path)
+        try {
+            $len = [int][Math]::Min([long]2MB, $fs.Length)
+            $buf = New-Object byte[] $len
+            $rx = '/CreationDate\s*\(\s*D?:?\s*(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?'
+            [void]$fs.Seek(-$len, [IO.SeekOrigin]::End)
+            [void]$fs.Read($buf, 0, $len)
+            $m = [regex]::Match([Text.Encoding]::ASCII.GetString($buf), $rx)
+            if (-not $m.Success) {
+                [void]$fs.Seek(0, [IO.SeekOrigin]::Begin)
+                [void]$fs.Read($buf, 0, $len)
+                $m = [regex]::Match([Text.Encoding]::ASCII.GetString($buf), $rx)
+            }
+        }
+        finally { $fs.Dispose() }
+    }
+    catch { return $null }
+    if (-not $m -or -not $m.Success) { return $null }
+    $mes = [int]$m.Groups[2].Value
+    $dia = [int]$m.Groups[3].Value
+    if ($mes -lt 1 -or $mes -gt 12 -or $dia -lt 1 -or $dia -gt 31) { return $null }
+    $hh = if ($m.Groups[4].Success) { $m.Groups[4].Value } else { '00' }
+    $mi = if ($m.Groups[5].Success) { $m.Groups[5].Value } else { '00' }
+    return ('{0}/{1}/{2} {3}:{4}' -f $m.Groups[3].Value, $m.Groups[2].Value,
+        $m.Groups[1].Value, $hh, $mi)
+}
+
+function Get-SerieDeFolhas {
+    <# Uma folha por pagina do PDF. Cada pagina traz o carimbo uma vez, mas o corpo
+       do texto cita folha alheia ("conforme fls. 1264") e o maximo da pagina
+       mentiria: escolhe-se, entre os candidatos da pagina, o que melhor continua a
+       folha anterior. #>
+    param([object[]]$Marcas)
+    # Hashtable, e nao [ordered]: indexar um [ordered] por inteiro le POSICAO, nao
+    # chave, e o numero da pagina e inteiro - dava ArgumentOutOfRangeException.
+    $porPagina = @{}
+    foreach ($mk in $Marcas) {
+        if (-not $porPagina.ContainsKey($mk.Pagina)) { $porPagina[$mk.Pagina] = New-Object System.Collections.ArrayList }
+        [void]$porPagina[$mk.Pagina].Add($mk)
+    }
+    $serie = New-Object System.Collections.ArrayList
+    $esperado = $null
+    foreach ($pag in ($porPagina.Keys | Sort-Object)) {
+        $cands = $porPagina[$pag]
+        if ($null -eq $esperado) { $esc = $cands | Sort-Object Folha | Select-Object -First 1 }
+        else { $esc = $cands | Sort-Object @{E={[Math]::Abs($_.Folha - $esperado)}}, Folha | Select-Object -First 1 }
+        [void]$serie.Add($esc)
+        $esperado = $esc.Folha + 1
+    }
+    return $serie
+}
+
 function Get-Linhas {
     param([string]$arquivo)
     if ([System.IO.Path]::GetExtension($arquivo).ToLowerInvariant() -eq '.docx') {
@@ -284,6 +345,12 @@ function Invoke-Mapa {
     param([string]$arquivo)
 
     $fonte = Get-Fonte $arquivo
+    $pdfOrigem = $null
+    if ([IO.Path]::GetExtension($arquivo).ToLowerInvariant() -eq '.pdf') { $pdfOrigem = $arquivo }
+    else {
+        $irmao = [IO.Path]::ChangeExtension($arquivo, '.pdf')
+        if (Test-Path -LiteralPath $irmao) { $pdfOrigem = $irmao }
+    }
     $linhas = Get-Linhas $fonte
     $total = $linhas.Count
 
@@ -313,6 +380,9 @@ function Invoke-Mapa {
     $repetidas = @{}
     $paginasComTexto = @{}
     $sistema = New-Object System.Collections.ArrayList
+    $folhasStj = New-Object System.Collections.ArrayList
+    $folhasGen = New-Object System.Collections.ArrayList
+    $criadoEm = Get-DataCriacaoPdf $pdfOrigem
     $dataExtrato = $null
     $linhaIndice = 0
     $linhaSumario = 0
@@ -360,6 +430,17 @@ function Invoke-Mapa {
         if (-not $carimbo -and $limpo.Length -ge 12 -and
             $orig -notmatch '^\s*\[p\.' -and $orig -notmatch '^\s*<!--') {
             $paginasComTexto[$pagina] = $true
+        }
+
+        # --- foliacao: carimbo de folha e referencias do texto ---
+        foreach ($mf in [regex]::Matches($orig, '\(\s*e-STJ\s*Fl\.\s*(\d{1,5})', 'IgnoreCase')) {
+            [void]$folhasStj.Add([pscustomobject]@{ Pagina = $pagina; Linha = $nl; Folha = [int]$mf.Groups[1].Value })
+        }
+        foreach ($mf in [regex]::Matches($orig, '\bfls?\.\s*(\d{1,5})\b', 'IgnoreCase')) {
+            [void]$folhasGen.Add([pscustomobject]@{ Pagina = $pagina; Linha = $nl; Folha = [int]$mf.Groups[1].Value })
+        }
+        if ($null -eq $criadoEm -and $orig -match 'PDF criado em\s*(\d{2}/\d{2}/\d{4}(?:\s+\d{2}:\d{2})?)') {
+            $criadoEm = $Matches[1]
         }
 
         # relogio embutido na URL de validacao do PJe-JT: AAMMDDHHMMSS nos 12 primeiros
@@ -565,11 +646,12 @@ function Invoke-Mapa {
     Add ''
 
     # --- 0. atualidade -------------------------------------------------------
-    # Quatro ancoras independentes, porque nenhuma existe em todos os sistemas: o
+    # CINCO ancoras independentes, porque nenhuma existe em todos os sistemas: o
     # eSAJ nao tem data de geracao nem carimbo de assinatura apos a conversao; o
     # PJe-JT tem pecas recentes SEM rodape de assinatura, cuja unica data esta nos
-    # 12 primeiros digitos da URL de validacao. Usar so uma ancora ja errou por 48
-    # dias num caso e falhou inteiramente em outro.
+    # 12 primeiros digitos da URL de validacao; e ha arquivo cuja unica data recente
+    # esta so nos metadados do PDF. Usar so uma ancora ja errou por 48 dias num
+    # caso, falhou inteiramente noutro e erraria treze meses num terceiro.
     Add '## 0. O extrato esta atual?'
     Add ''
 
@@ -600,6 +682,13 @@ function Invoke-Mapa {
         }
     }
 
+    $dCriado = $null
+    if ($criadoEm) { $dCriado = Get-DataBR ($criadoEm -split '\s+')[0] }
+    if ($dCriado) {
+        [void]$ancoras.Add([pscustomobject]@{ Nome = 'Metadados do arquivo (CreationDate)'; D = $dCriado
+            Detalhe = ('PDF gerado em {0}' -f $criadoEm) })
+    }
+
     $inferida = $null
     if ($ancoras.Count -eq 0) {
         $passadas = @($datas | Where-Object { $_.Data -le $Hoje } | Sort-Object Data)
@@ -611,6 +700,7 @@ function Invoke-Mapa {
     }
 
     if ($dataExtrato) { Add ('- **Extrato gerado em {0}** (data impressa pelo sistema).' -f $dataExtrato.ToString('dd/MM/yyyy')) }
+    if ($criadoEm) { Add ('- **PDF criado em {0}** (metadado `CreationDate` do arquivo).' -f $criadoEm) }
 
     if ($ancoras.Count -gt 0) {
         Add ''
@@ -632,8 +722,11 @@ function Invoke-Mapa {
         $gap = [int]($Hoje - $topo.D).TotalDays
         Add ('- Ultima atividade retratada: **{0}**. Hoje e {1}. O arquivo tem **{2} dia(s)**.' -f `
             $topo.D.ToString('dd/MM/yyyy'), $Hoje.ToString('dd/MM/yyyy'), $gap)
+        if ($criadoEm) {
+            Add '- **A data de criacao do PDF diz quando o retrato foi tirado, nao quando o processo se moveu.** Registre as duas: sem ela, arquivo cujo unico marcador antigo e o texto ja fez datar o retrato treze meses atras.'
+        }
         if ($inferida) {
-            Add '- **A data acima e inferida do texto**, nao de um marcador do sistema. Neste arquivo nao ha data de geracao, indice, assinatura eletronica nem URL de validacao: a atualidade NAO pode ser afirmada com base nele.'
+            Add '- **A data acima e inferida do texto**, nao de um marcador do sistema. Neste arquivo nao ha data de geracao, indice, assinatura eletronica, URL de validacao nem metadado de criacao: a atualidade NAO pode ser afirmada com base nele.'
         }
         Add ''
         if ($gap -ge 30) {
@@ -641,7 +734,7 @@ function Invoke-Mapa {
         }
         else { Add '> Janela aceitavel, mas confirme o andamento no sistema antes de cravar prazo.' }
     }
-    else { Add '- Nao foi possivel datar o arquivo por nenhuma das quatro ancoras. Trate-o como desatualizado ate consultar o sistema.' }
+    else { Add '- Nao foi possivel datar o arquivo por nenhuma das cinco ancoras. Trate-o como desatualizado ate consultar o sistema.' }
     Add ''
 
     # --- 0.1 cobertura e sanidade da conversao -------------------------------
@@ -681,6 +774,90 @@ function Invoke-Mapa {
         else { Add ('- Acentuacao integra ({0}% dos caracteres) - a conversao preservou os glifos.' -f $pct) }
     }
     Add ''
+
+    # --- 0.2 foliacao --------------------------------------------------------
+    # Num arquivo real a folha ia ate 830 e voltava para 1 na pagina 813 do PDF:
+    # comecava um apenso. So se AFIRMA reinicio quando as marcas se comportam como
+    # carimbo, isto e, quando cobrem a maioria das paginas. No PJe nao ha carimbo de
+    # folha, e o que o regex apanha sao referencias do corpo ("conforme fls. 44"):
+    # num processo do TRF1 elas produziam dezoito apensos que nao existem.
+    Add '## 0.2 A foliacao e continua?'
+    Add ''
+    $usaStj = $folhasStj.Count -ge 5
+    $marcas = if ($usaStj) { $folhasStj } else { $folhasGen }
+    $canonica = if ($usaStj) { 'carimbo `(e-STJ Fl.N)`' } else { 'marcas `fl.`/`fls.` do texto' }
+
+    if ($marcas.Count -lt 5) {
+        Add '- Menos de 5 marcas de folha no arquivo: **este arquivo nao tem foliacao carimbada**. Cite por ID, evento ou numero de documento - nunca por folha.'
+        Add ''
+    }
+    else {
+        $serie = Get-SerieDeFolhas -Marcas $marcas
+        $cobertura = if ($pagina -gt 0) { $serie.Count / [double]$pagina } else { 0 }
+
+        if (-not $usaStj -and $cobertura -lt 0.5) {
+            Add ('- **{0} marcas de folha** ({1}) em apenas {2} das {3} paginas - **cobertura de {4}%.**' -f `
+                $marcas.Count, $canonica, $serie.Count, $pagina, [int][Math]::Round(100 * $cobertura))
+            Add ''
+            Add '> Cobertura baixa significa que **nao ha carimbo de folha neste arquivo**: o que o mapa apanhou sao referencias do corpo do texto (`conforme fls. 44`), que apontam para folha de OUTRA autuacao ou de peca anexa. **Nao da para afirmar nem negar reinicio de foliacao aqui**, e citar por folha e inseguro - cite por ID ou evento (secao 2). E o caso normal do PJe e do eproc.'
+            Add ''
+        }
+        else {
+            $reinicios = New-Object System.Collections.ArrayList
+            $saltos = New-Object System.Collections.ArrayList
+            for ($k = 1; $k -lt $serie.Count; $k++) {
+                $cur = $serie[$k]; $ant = $serie[$k - 1]
+                if ($cur.Folha -lt $ant.Folha) {
+                    [void]$reinicios.Add([pscustomobject]@{ Pagina = $cur.Pagina; Linha = $cur.Linha; De = $ant.Folha; Para = $cur.Folha })
+                }
+                elseif ($cur.Pagina -eq $ant.Pagina + 1 -and $cur.Folha -gt $ant.Folha + 1) {
+                    [void]$saltos.Add([pscustomobject]@{ Pagina = $cur.Pagina; Linha = $cur.Linha; De = $ant.Folha; Para = $cur.Folha })
+                }
+            }
+            $minF = ($serie | Measure-Object -Property Folha -Minimum).Minimum
+            $maxF = ($serie | Measure-Object -Property Folha -Maximum).Maximum
+            Add ('- **{0} marcas de folha** ({1}), em {2} das {3} paginas do PDF, da folha **{4}** a **{5}**.' -f `
+                $marcas.Count, $canonica, $serie.Count, $pagina, $minF, $maxF)
+
+            if ($reinicios.Count -gt [Math]::Max(3, 0.05 * $serie.Count)) {
+                Add ('- **{0} descidas de numeracao em {1} paginas** - proporcao alta demais para serem apensos. As marcas apanhadas estao poluidas por referencia de corpo de texto; **o mapa nao afirma nada sobre a foliacao deste arquivo.** Cite por ID ou evento.' -f $reinicios.Count, $serie.Count)
+                Add ''
+            }
+            elseif ($reinicios.Count -eq 0) {
+                Add '- A foliacao **nao reinicia**: um unico bloco de numeracao no arquivo inteiro.'
+                Add ''
+            }
+            else {
+                Add ('- **A foliacao REINICIA {0} vez(es)** dentro do mesmo arquivo:' -f $reinicios.Count)
+                Add ''
+                Add '| na pagina do PDF | linha | folha anterior | volta para |'
+                Add '|---:|---:|---:|---:|'
+                $n = 0
+                foreach ($r in $reinicios) {
+                    if ($n -ge 20) { Add ('| ... | | | *(+{0} omitidos)* |' -f ($reinicios.Count - $n)); break }
+                    Add ('| {0} | {1} | {2} | **{3}** |' -f $r.Pagina, $r.Linha, $r.De, $r.Para)
+                    $n++
+                }
+                Add ''
+                Add '> **Reinicio de foliacao significa peca apensada** - o arquivo contem mais de uma autuacao. A consequencia e imediata: a partir daqui **o mesmo numero de folha existe duas vezes no mesmo PDF**, e toda citacao de folha tem de dizer DE QUAL AUTUACAO (`fl. 12 do apenso`, nunca `fl. 12`). Confira tambem quantos apensos a capa declara contra quantos este arquivo efetivamente traz - e o campo `COBERTURA DO ARQUIVO` da ficha.'
+                Add ''
+            }
+
+            if ($saltos.Count -gt 0 -and $reinicios.Count -le [Math]::Max(3, 0.05 * $serie.Count)) {
+                Add ('- **{0} salto(s) de foliacao** entre paginas consecutivas do PDF (folhas faltando, ou juntada fora de ordem):' -f $saltos.Count)
+                Add ''
+                $n = 0
+                foreach ($r in $saltos) {
+                    if ($n -ge 10) { Add ('    - *(+{0} omitidos)*' -f ($saltos.Count - $n)); break }
+                    Add ('    - p. {0} (linha {1}): de {2} para {3} - faltam {4} folha(s).' -f $r.Pagina, $r.Linha, $r.De, $r.Para, ($r.Para - $r.De - 1))
+                    $n++
+                }
+                Add ''
+                Add '> Salto pode ser folha ausente do extrato, pagina sem camada de texto (secao 0.1) ou simples verso nao numerado. Cruze com a secao 0.1 antes de afirmar que falta peca.'
+                Add ''
+            }
+        }
+    }
 
     # --- 1. identificacao ---------------------------------------------------
     Add '## 1. Identificacao'

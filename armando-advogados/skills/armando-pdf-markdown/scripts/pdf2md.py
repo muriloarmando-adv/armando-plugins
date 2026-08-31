@@ -11,13 +11,48 @@ Uso:
     python pdf2md.py processo.pdf
     python pdf2md.py pasta/ --out saida/
     python pdf2md.py doc.pdf --manter-repetidos --sem-marcas-de-pagina
+    python pdf2md.py autos.pdf --paginas 1-100
 """
 
 import argparse
+import gc
 import os
 import re
 import sys
 from collections import Counter, defaultdict
+
+# Paginas por lote interno. Cada lote e extraido, reduzido a linhas e liberado
+# antes do seguinte: em processo de 844 paginas / 69 MB o script carregava todas
+# as palavras de todas as paginas de uma vez e era morto pelo SO com 4 GB de RAM.
+LOTE_PADRAO = 100
+
+
+# ------------------------------------------------------------------- imunes
+
+# Padroes que NUNCA sao descartados pela remocao de repetidos, mesmo repetindo
+# em toda pagina. O carimbo de folha repete por definicao - e por isso era
+# engolido junto com o cabecalho: num extrato e-STJ de 844 paginas, das 855
+# ocorrencias de "(e-STJ Fl.N)" sobravam poucas centenas, e a ultima folha
+# visivel no .md era a 822 quando a real era a 830. Sem o carimbo, as ancoras 2
+# e 3 da secao 3 da armando-analise-processo mentem, e citar peca por folha
+# fica impossivel.
+RX_IMUNES = [
+    re.compile(r"\(e-STJ\s*Fl\.", re.I),        # e-STJ / STJ
+    re.compile(r"\bFl\.?\s*\d", re.I),          # foliacao "Fl. 830"
+    re.compile(r"\bfls\.", re.I),               # "fls. 145/336"
+    re.compile(r"\bID\s+[0-9A-Za-z]", re.I),    # PJe: "ID 037030e"
+    re.compile(r"\bEvento\s+\d", re.I),         # eproc: "Evento 12"
+    re.compile(r"\bNum\.\s*\d", re.I),          # PJe-JT: "Num. 3c1f2a9"
+]
+
+
+def imune(texto):
+    """Diz se a linha carrega identificador que nao pode ser perdido."""
+    for rx in RX_IMUNES:
+        if rx.search(texto):
+            return True
+    return False
+
 
 # ----------------------------------------------------------------- extracao
 
@@ -65,69 +100,155 @@ def _group_words(words):
     return [ln for ln in lines if ln["text"]]
 
 
-def extract_pdfplumber(path):
-    """Extracao boa: da a posicao de cada palavra. Devolve (paginas, None)."""
-    import pdfplumber  # noqa: F401  (falha tratada por quem chama)
+def data_criacao(meta):
+    """CreationDate do PDF -> 'dd/mm/aaaa hh:mm'.
 
-    pages = []
+    E a quinta ancora de atualidade da armando-analise-processo: diz quando o
+    PDF foi tirado, nao quando o processo se moveu - mas num caso real era o
+    unico marcador recente do arquivo, e sem ele a analise erraria 13 meses.
+    """
+    if not meta:
+        return None
+    try:
+        bruto = str(meta.get("CreationDate") or meta.get("ModDate") or "")
+    except Exception:
+        return None
+    m = re.search(r"D?:?\s*(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?", bruto)
+    if not m:
+        return None
+    aa, mm, dd = m.group(1), m.group(2), m.group(3)
+    hh, mi = m.group(4) or "00", m.group(5) or "00"
+    try:
+        if not (1 <= int(mm) <= 12 and 1 <= int(dd) <= 31):
+            return None
+    except ValueError:
+        return None
+    return "%s/%s/%s %s:%s" % (dd, mm, aa, hh, mi)
+
+
+def _lote_pdfplumber(pdfplumber, path, ini, fim, st):
+    """Extrai UM lote de paginas, com handle proprio do pdfplumber."""
+    buf = []
     with pdfplumber.open(path) as pdf:
-        for i, page in enumerate(pdf.pages, 1):
+        for n in range(ini, fim + 1):
+            page = pdf.pages[n - 1]
             try:
-                words = page.extract_words(extra_attrs=["size", "fontname"])
-            except TypeError:  # pdfplumber antigo, sem extra_attrs
+                words = page.extract_words(
+                    extra_attrs=["size", "fontname", "upright"])
+            except TypeError:          # pdfplumber antigo, sem extra_attrs
                 words = page.extract_words()
-            pages.append(
-                {
-                    "n": i,
-                    "w": float(page.width or 595),
-                    "h": float(page.height or 842),
-                    "lines": _group_words(words),
-                }
-            )
-    return pages
+            # A marca d agua vertical do e-STJ ("Para verificar a assinatura
+            # acesse...") sai rodada e picada, uma letra por linha, interpolada
+            # no meio dos paragrafos: chegava a 30-40% das linhas do .md. Texto
+            # rotacionado tem upright=False. Descartar aqui e o maior ganho de
+            # qualidade da cadeia inteira.
+            antes = len(words)
+            words = [w for w in words if w.get("upright", True)]
+            st["nao_upright"] += antes - len(words)
+
+            buf.append({
+                "n": n,
+                "w": float(page.width or 595),
+                "h": float(page.height or 842),
+                "lines": _group_words(words),
+            })
+            del words
+            try:
+                page.close()           # devolve o cache de objetos da pagina
+            except Exception:
+                pass
+    return buf
 
 
-def extract_pypdf(path):
+def lotes_pdfplumber(path, lote, faixa, st):
+    """Extracao boa: da a posicao de cada palavra. Gera lotes de paginas.
+
+    Cada lote abre o PDF por conta propria, reduz as paginas a linhas e fecha:
+    o pdfminer acumula cache de fonte e de objeto que nem page.close() nem
+    gc.collect() devolvem, e num arquivo de 844 paginas / 69 MB isso levava o
+    processo a mais de 6 GB - na nuvem, com 4 GB, ele era morto pelo SO.
+    Fechando o arquivo a cada lote, o pico passa a ser o do lote mais pesado, e
+    --lote vira o dial de memoria: 100 e o padrao, 50 num ambiente apertado.
+    """
+    import pdfplumber
+
+    with pdfplumber.open(path) as pdf:
+        st["criado_em"] = data_criacao(pdf.metadata)
+        total = len(pdf.pages)
+    st["paginas_pdf"] = total
+    ini, fim = faixa if faixa else (1, total)
+    ini = max(1, ini)
+    fim = min(total, fim if fim else total)
+    st["faixa"] = (ini, fim)
+
+    n = ini
+    while n <= fim:
+        ate = min(fim, n + lote - 1)
+        yield _lote_pdfplumber(pdfplumber, path, n, ate, st)
+        gc.collect()
+        n = ate + 1
+
+
+def lotes_pypdf(path, lote, faixa, st):
     """Plano B: so o texto, sem posicao. A saida fica pior."""
     try:
         from pypdf import PdfReader
     except ImportError:
         from PyPDF2 import PdfReader  # type: ignore
 
-    pages = []
     reader = PdfReader(path)
-    for i, page in enumerate(reader.pages, 1):
-        raw = page.extract_text() or ""
+    st["criado_em"] = data_criacao(getattr(reader, "metadata", None))
+    total = len(reader.pages)
+    st["paginas_pdf"] = total
+    ini, fim = faixa if faixa else (1, total)
+    ini = max(1, ini)
+    fim = min(total, fim if fim else total)
+    st["faixa"] = (ini, fim)
+    st["upright_nao_aplicado"] = True
+
+    buf = []
+    for n in range(ini, fim + 1):
+        raw = reader.pages[n - 1].extract_text() or ""
         lines = []
         # sem coordenada real: empilha as linhas e finge uma margem constante
         for k, t in enumerate(ln.strip() for ln in raw.splitlines()):
             if t:
-                lines.append(
-                    {
-                        "text": t,
-                        "x0": 0.0,
-                        "x1": float(len(t)),
-                        "top": float(k),
-                        "size": 10.0,
-                        "bold": False,
-                    }
-                )
-        pages.append({"n": i, "w": 595.0, "h": 842.0, "lines": lines})
-    return pages
+                lines.append({
+                    "text": t, "x0": 0.0, "x1": float(len(t)),
+                    "top": float(k), "size": 10.0, "bold": False,
+                })
+        buf.append({"n": n, "w": 595.0, "h": 842.0, "lines": lines})
+        if len(buf) >= lote:
+            yield buf
+            buf = []
+            gc.collect()
+    if buf:
+        yield buf
 
 
-def extract(path):
-    """Devolve (paginas, aviso)."""
+def _consumir(gerador):
+    """Consome o gerador de lotes. So as linhas ficam retidas; as palavras e o
+       cache do pdfplumber ja foram liberados lote a lote."""
+    paginas = []
+    for lote in gerador:
+        paginas.extend(lote)
+    return paginas
+
+
+def carregar(path, lote, faixa, st):
+    """Devolve (paginas, aviso). As paginas ja vem reduzidas a linhas."""
     try:
-        return extract_pdfplumber(path), None
+        return _consumir(lotes_pdfplumber(path, lote, faixa, st)), None
     except ImportError:
         pass
-    except Exception as e:  # PDF quebrado, protegido por senha etc.
+    except Exception as e:            # PDF quebrado, protegido por senha etc.
         return [], "pdfplumber falhou: %s" % e
     try:
-        return extract_pypdf(path), (
+        st["nao_upright"] = 0
+        return _consumir(lotes_pypdf(path, lote, faixa, st)), (
             "pdfplumber nao esta instalado; usei pypdf, sem posicao de texto. "
-            "A remontagem de paragrafo e a remocao de carimbo ficam piores."
+            "A remontagem de paragrafo e a remocao de carimbo ficam piores, e o "
+            "filtro de texto rotacionado (marca d agua vertical) NAO se aplica."
         )
     except Exception as e:
         return [], "nao consegui ler o PDF: %s" % e
@@ -165,24 +286,29 @@ RX_PAGENUM = re.compile(r"^(p(a|á)g(ina)?\.?\s*)?\d{1,4}(\s*(/|de)\s*\d{1,4})?$
 
 
 def strip_repeated(pages, enabled):
-    """Tira cabecalho, rodape e carimbo que se repetem na maioria das paginas."""
+    """Tira cabecalho, rodape e carimbo que se repetem na maioria das paginas.
+
+    O que casar em RX_IMUNES fica, mesmo repetindo: e identificador de folha,
+    de documento ou de evento, e sem ele nao se cita peca nenhuma.
+    """
     total = len(pages)
-    all_lines = [(p, ln) for p in pages for ln in p["lines"]]
     dropped = 0
+    salvos = 0
     blocked, blocked_pre = set(), set()
 
     if enabled and total >= 3:
         seen, seen_pre = defaultdict(set), defaultdict(set)
-        for p, ln in all_lines:
-            k = norm_key(ln["text"])
-            if len(k) < 2:
-                continue
-            band = ln["top"] < 0.13 * p["h"] or ln["top"] > 0.87 * p["h"]
-            if band or len(k) >= 40:
-                seen[k].add(p["n"])
-            # o carimbo muda nome e codigo a cada pagina: casa pelo inicio
-            if len(k) >= 60:
-                seen_pre[k[:60]].add(p["n"])
+        for p in pages:
+            for ln in p["lines"]:
+                k = norm_key(ln["text"])
+                if len(k) < 2:
+                    continue
+                band = ln["top"] < 0.13 * p["h"] or ln["top"] > 0.87 * p["h"]
+                if band or len(k) >= 40:
+                    seen[k].add(p["n"])
+                # o carimbo muda nome e codigo a cada pagina: casa pelo inicio
+                if len(k) >= 60:
+                    seen_pre[k[:60]].add(p["n"])
         limit = max(3, -(-total // 2))
         blocked = {k for k, v in seen.items() if len(v) >= limit}
         blocked_pre = {k for k, v in seen_pre.items() if len(v) >= limit}
@@ -192,16 +318,21 @@ def strip_repeated(pages, enabled):
         for ln in p["lines"]:
             t = ln["text"].strip()
             k = norm_key(t)
-            if enabled and (k in blocked or (len(k) >= 60 and k[:60] in blocked_pre)):
-                dropped += 1
-                continue
+            repetida = enabled and (
+                k in blocked or (len(k) >= 60 and k[:60] in blocked_pre))
+            if repetida:
+                if imune(t):
+                    salvos += 1
+                else:
+                    dropped += 1
+                    continue
             band = ln["top"] < 0.13 * p["h"] or ln["top"] > 0.87 * p["h"]
-            if band and RX_PAGENUM.match(t):
+            if band and RX_PAGENUM.match(t) and not imune(t):
                 dropped += 1
                 continue
             kept.append(ln)
         p["lines"] = kept
-    return dropped
+    return dropped, salvos
 
 
 def body_size(pages):
@@ -232,8 +363,17 @@ def heading_level(t, ln, body):
     return 0, is_caps
 
 
-def to_markdown(pages, source, page_marks, dropped):
-    body = body_size(pages)
+def render_page(p, body, page_marks, first_page):
+    """Blocos de markdown de UMA pagina.
+
+    A remontagem de paragrafo ja nao atravessava pagina (o original dava flush
+    ao fim de cada uma), entao renderizar pagina a pagina e escrever direto no
+    arquivo nao muda a saida - e permite nao guardar o .md inteiro em memoria.
+    """
+    lines = p["lines"]
+    if not lines:
+        return []
+
     blocks, buf = [], []
     buf_level = 0
     prev = None
@@ -257,90 +397,97 @@ def to_markdown(pages, source, page_marks, dropped):
                 blocks.append(txt)
         buf, buf_level = [], 0
 
-    first_page = True
-    for p in pages:
-        lines = p["lines"]
-        if not lines:
+    right = pct([ln["x1"] for ln in lines], 0.92)
+    left = pct([ln["x0"] for ln in lines], 0.08)
+    width = max(1.0, right - left)
+
+    # margem direita por nivel de recuo: citacao recuada tem margem propria
+    buckets = defaultdict(list)
+    for ln in lines:
+        buckets[int(round(ln["x0"] / 12))].append(ln["x1"])
+    edge = {b: (pct(v, 0.92) if len(v) >= 2 else right) for b, v in buckets.items()}
+
+    gaps = [
+        lines[i]["top"] - lines[i - 1]["top"]
+        for i in range(1, len(lines))
+        if 0.5 < lines[i]["top"] - lines[i - 1]["top"] < 100
+    ]
+    med_gap = pct(gaps, 0.5) if gaps else body * 1.3
+
+    if page_marks and not first_page:
+        blocks.append("[p. %d]" % p["n"])
+
+    for ln in lines:
+        t = ln["text"].strip()
+        if not t:
             continue
-        right = pct([ln["x1"] for ln in lines], 0.92)
-        left = pct([ln["x0"] for ln in lines], 0.08)
-        width = max(1.0, right - left)
+        level, _ = heading_level(t, ln, body)
+        is_list = level == 0 and RX_LIST.match(t) and not RX_NUM.match(t)
+        is_num = level == 0 and RX_NUM.match(t)
 
-        # margem direita por nivel de recuo: citacao recuada tem margem propria
-        buckets = defaultdict(list)
-        for ln in lines:
-            buckets[int(round(ln["x0"] / 12))].append(ln["x1"])
-        edge = {b: (pct(v, 0.92) if len(v) >= 2 else right) for b, v in buckets.items()}
-
-        gaps = [
-            lines[i]["top"] - lines[i - 1]["top"]
-            for i in range(1, len(lines))
-            if 0.5 < lines[i]["top"] - lines[i - 1]["top"] < 100
-        ]
-        med_gap = pct(gaps, 0.5) if gaps else body * 1.3
-
-        if page_marks and not first_page:
-            flush()
-            blocks.append("[p. %d]" % p["n"])
-        first_page = False
-
-        for ln in lines:
-            t = ln["text"].strip()
-            if not t:
-                continue
-            level, _ = heading_level(t, ln, body)
-            is_list = level == 0 and RX_LIST.match(t) and not RX_NUM.match(t)
-            is_num = level == 0 and RX_NUM.match(t)
-
-            gap = (ln["top"] - prev["top"]) if (prev and prev["page"] == p["n"]) else 0
-            brk = False
-            if prev is None or prev["page"] != p["n"]:
+        gap = (ln["top"] - prev["top"]) if prev else 0
+        brk = False
+        if prev is None:
+            brk = True
+        elif level > 0 or buf_level > 0:
+            # titulos: so quebram por mudanca de nivel ou espaco vertical
+            brk = level != buf_level or gap > 1.6 * med_gap
+        else:
+            p_right = edge.get(int(round(prev["x0"] / 12)), right)
+            deficit = p_right - prev["x1"]
+            fecha = re.search(r"[.!?:;\"”»)]\s*$", prev["text"]) is not None
+            if gap > 1.45 * med_gap:
                 brk = True
-            elif level > 0 or buf_level > 0:
-                # titulos: so quebram por mudanca de nivel ou espaco vertical
-                brk = level != buf_level or gap > 1.6 * med_gap
-            else:
-                p_right = edge.get(int(round(prev["x0"] / 12)), right)
-                deficit = p_right - prev["x1"]
-                fecha = re.search(r"[.!?:;\"”»)]\s*$", prev["text"]) is not None
-                if gap > 1.45 * med_gap:
-                    brk = True
-                if deficit > 0.06 * width and fecha:
-                    brk = True
-                if deficit > 0.30 * width:
-                    brk = True
-                if ln["x0"] > prev["x0"] + 0.02 * width:   # recuo de 1a linha
-                    brk = True
-                if abs(prev["size"] - ln["size"]) > 0.7:
-                    brk = True
-                if is_list or is_num:
-                    brk = True
+            if deficit > 0.06 * width and fecha:
+                brk = True
+            if deficit > 0.30 * width:
+                brk = True
+            if ln["x0"] > prev["x0"] + 0.02 * width:   # recuo de 1a linha
+                brk = True
+            if abs(prev["size"] - ln["size"]) > 0.7:
+                brk = True
+            if is_list or is_num:
+                brk = True
 
-            if brk:
-                flush()
-            if is_list:
-                t = "- " + RX_BULLET.sub("", t)
-            if not buf:
-                buf_level = level
-            buf.append(t)
-            prev = dict(ln, page=p["n"])
-        flush()
+        if brk:
+            flush()
+        if is_list:
+            t = "- " + RX_BULLET.sub("", t)
+        if not buf:
+            buf_level = level
+        buf.append(t)
+        prev = ln
     flush()
+    return blocks
 
-    head = "<!-- %s | %d pag." % (source, len(pages))
+
+def cabecalho(source, st, dropped, salvos):
+    """Primeira linha do .md, em comentario HTML."""
+    ini, fim = st.get("faixa") or (1, st.get("paginas_pdf") or 0)
+    n = fim - ini + 1
+    h = "<!-- %s | %d pag." % (source, n)
+    if st.get("paginas_pdf") and n != st["paginas_pdf"]:
+        h += " (paginas %d-%d de %d do PDF)" % (ini, fim, st["paginas_pdf"])
+    if st.get("criado_em"):
+        h += " | PDF criado em %s" % st["criado_em"]
     if dropped:
-        head += " | %d linhas de cabecalho/rodape removidas" % dropped
-    head += " -->"
-    out = head + "\n\n" + "\n\n".join(b for b in blocks if b.strip())
-    out = re.sub(r"\n{3,}", "\n\n", out)
-    return re.sub(r"[ \t]+\n", "\n", out)
+        h += " | %d linhas de cabecalho/rodape removidas" % dropped
+    if salvos:
+        h += " | %d preservadas por carregarem folha/ID" % salvos
+    if st.get("upright_nao_aplicado"):
+        h += " | filtro de texto rotacionado NAO aplicado (pypdf)"
+    elif st.get("nao_upright"):
+        h += " | %d palavras rotacionadas descartadas" % st["nao_upright"]
+    return h + " -->"
 
 
 # ------------------------------------------------------------------ CLI
 
 
 def convert(src, dst, args):
-    pages, warn = extract(src)
+    st = {"nao_upright": 0, "criado_em": None, "paginas_pdf": 0,
+          "faixa": None, "upright_nao_aplicado": False}
+    pages, warn = carregar(src, args.lote, args.paginas, st)
     if warn:
         print("     aviso: %s" % warn)
     if not pages or not any(p["lines"] for p in pages):
@@ -359,21 +506,69 @@ def convert(src, dst, args):
                     )
         print("     diagnostico: %s" % os.path.basename(tsv))
 
-    dropped = strip_repeated(pages, not args.manter_repetidos)
-    md = to_markdown(pages, os.path.basename(src), not args.sem_marcas_de_pagina, dropped)
+    dropped, salvos = strip_repeated(pages, not args.manter_repetidos)
+    body = body_size(pages)
+    page_marks = not args.sem_marcas_de_pagina
+
+    # Escrita incremental: renderiza pagina a pagina e larga a pagina em seguida,
+    # de modo que nem as linhas nem o markdown do documento inteiro ficam retidos.
+    chars = 0
     with open(dst, "w", encoding="utf-8") as fh:
-        fh.write(md)
+        head = cabecalho(os.path.basename(src), st, dropped, salvos)
+        fh.write(head + "\n")
+        chars += len(head) + 1
+        primeira = True
+        pendente_nl = True
+        for i, p in enumerate(pages):
+            blocos = [b for b in render_page(p, body, page_marks, primeira)
+                      if b.strip()]
+            if blocos:
+                primeira = False
+                pedaco = ("\n" if pendente_nl else "\n\n") + "\n\n".join(blocos)
+                pedaco = re.sub(r"[ \t]+\n", "\n", pedaco)
+                fh.write(pedaco)
+                chars += len(pedaco)
+                pendente_nl = False
+            p["lines"] = []
+            if i % LOTE_PADRAO == LOTE_PADRAO - 1:
+                gc.collect()
+        fh.write("\n")
+        chars += 1
 
     kb = os.path.getsize(src) // 1024
     print("  -> %s" % os.path.basename(dst))
     print("     %d pag. | %d KB de PDF -> %d caracteres (~%d tokens)"
-          % (len(pages), kb, len(md), round(len(md) / 3.5)))
+          % (len(pages), kb, chars, round(chars / 3.5)))
     if dropped:
         print("     %d linhas repetidas de cabecalho/rodape removidas" % dropped)
-    if pages and len(md) / len(pages) < 200:
+    if salvos:
+        print("     %d linhas repetidas PRESERVADAS (carregam folha/ID/evento)" % salvos)
+    if st.get("upright_nao_aplicado"):
+        print("     AVISO: sem pdfplumber o filtro de texto rotacionado nao se")
+        print("            aplica - a marca d agua vertical continua no .md.")
+    elif st.get("nao_upright"):
+        print("     %d palavras rotacionadas (marca d agua) descartadas"
+              % st["nao_upright"])
+    if st.get("criado_em"):
+        print("     PDF criado em %s (5a ancora de atualidade)" % st["criado_em"])
+    if pages and chars / len(pages) < 200:
         print("     AVISO: quase nao ha texto por pagina - PDF provavelmente digitalizado.")
         print("            o .md so tem o carimbo. Para o conteudo, precisa de OCR.")
     return dst
+
+
+def parse_faixa(s):
+    """'1-100' -> (1, 100); '200-' -> (200, ate o fim); '50' -> (50, 50)."""
+    if not s:
+        return None
+    m = re.match(r"^\s*(\d+)\s*(?:([-:])\s*(\d+)?)?\s*$", s)
+    if not m:
+        raise argparse.ArgumentTypeError(
+            "faixa invalida: %s. Use 1-100, 200- ou 50." % s)
+    ini = int(m.group(1))
+    if not m.group(2):
+        return (ini, ini)
+    return (ini, int(m.group(3)) if m.group(3) else 0)
 
 
 def main():
@@ -387,7 +582,13 @@ def main():
                     dest="sem_marcas_de_pagina", help="sair sem as marcas [p. N]")
     ap.add_argument("--linhas", action="store_true",
                     help="gerar tambem o .linhas.tsv de diagnostico")
+    ap.add_argument("--paginas", type=parse_faixa, default=None, metavar="1-100",
+                    help="converter so esta faixa de paginas do PDF")
+    ap.add_argument("--lote", type=int, default=LOTE_PADRAO, metavar="N",
+                    help="paginas por lote interno (padrao %d)" % LOTE_PADRAO)
     args = ap.parse_args()
+    if args.lote < 1:
+        args.lote = LOTE_PADRAO
 
     files = []
     for p in args.path:
@@ -423,6 +624,7 @@ def main():
                 done += 1
         except Exception as e:
             print("  ! Erro: %s" % e)
+        gc.collect()
     if len(files) > 1:
         print("\n%d de %d arquivos convertidos." % (done, len(files)))
     return 0 if done else 1
