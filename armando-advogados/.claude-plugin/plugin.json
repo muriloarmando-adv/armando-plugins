@@ -1,7 +1,7 @@
 {
   "name": "armando-advogados",
   "description": "Skills do escritório Armando Advogados: análise de contrato de terceiro, elaboração de minuta no padrão da casa, atos societários de sociedade limitada (contrato social, alteração e consolidação), análise de processo judicial em curso (ficha resumo, parecer estratégico e triagem de prazo), redação de petição inicial, geração de peças em papel timbrado, formatação de cards do NAJI e conversão de PDF em Markdown enxuto.",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "author": {
     "name": "Armando Advogados"
   },
