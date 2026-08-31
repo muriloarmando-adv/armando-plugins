@@ -5,10 +5,31 @@ Passagem obrigatória antes de entregar. **A tabela é para varrer**; os casos r
 Rode primeiro o mecânico:
 
 ```powershell
-& "<plugin>\scripts\mapear-autos.ps1"             -Path "<autos.md>"  -Out "<mapa.md>"
-& "<plugin>\scripts\validar-identificadores.ps1"  -Path "<análise>"
-& "<plugin>\scripts\extenso.ps1"                  -Path "<análise>"
+& "$AA\scripts\mapear-autos.ps1"             -Path "<autos.md>"  -Out "<mapa.md>"
+& "$AA\scripts\validar-identificadores.ps1"  -Path "<análise>"
+& "$AA\scripts\extenso.ps1"                  -Path "<análise>"
 ```
+
+> `$AA` e a raiz do plugin, e nao um caminho fixo: ela muda entre a maquina do
+> escritorio, a nuvem e o Cowork. Obtenha-a uma vez por sessao, antes de rodar
+> qualquer script acima:
+>
+> ```powershell
+> $AA = @($env:CLAUDE_PLUGIN_ROOT,
+>         "$env:USERPROFILE\.claude\plugins\marketplaces\armando-advogados\armando-advogados",
+>         "$env:USERPROFILE\armando-plugins\armando-advogados") |
+>       Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+> ```
+>
+> ```bash
+> AA=$(ls -d "$CLAUDE_PLUGIN_ROOT" \
+>         "$HOME/.claude/plugins/marketplaces/armando-advogados/armando-advogados" \
+>         "$HOME/armando-plugins/armando-advogados" 2>/dev/null | head -1)
+> ```
+>
+> Saindo vazio, o plugin nao esta instalado: **diga isso e pare**, em vez de
+> adivinhar caminho.
+
 
 | Script | O que apanha |
 |---|---|

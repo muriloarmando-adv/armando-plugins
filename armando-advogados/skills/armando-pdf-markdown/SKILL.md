@@ -22,7 +22,10 @@ Os dois produzem o mesmo formato de saída e aceitam as mesmas opções.
 Localize o script e converta (uma linha só):
 
 ```powershell
-$exe = @("$env:CLAUDE_PLUGIN_ROOT\skills\armando-pdf-markdown\scripts\pdf2md.ps1", "$env:USERPROFILE\.claude\skills\armando-pdf-markdown\scripts\pdf2md.ps1", "$env:USERPROFILE\.claude\tools\pdf2md.ps1") | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+$exe = @("$env:CLAUDE_PLUGIN_ROOT\skills\armando-pdf-markdown\scripts\pdf2md.ps1",
+         "$env:USERPROFILE\.claude\plugins\marketplaces\armando-advogados\armando-advogados\skills\armando-pdf-markdown\scripts\pdf2md.ps1",
+         "$env:USERPROFILE\armando-plugins\armando-advogados\skills\armando-pdf-markdown\scripts\pdf2md.ps1") |
+       Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 powershell -NoProfile -ExecutionPolicy Bypass -File $exe "C:\caminho\processo.pdf" -Out "C:\caminho\processo.md"
 ```
 
@@ -36,7 +39,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File $exe "C:\pasta\do\processo" 
 
 ```bash
 PDF2MD=$(ls "$CLAUDE_PLUGIN_ROOT/skills/armando-pdf-markdown/scripts/pdf2md.py" \
-            "$HOME/.claude/skills/armando-pdf-markdown/scripts/pdf2md.py" 2>/dev/null | head -1)
+            "$HOME/.claude/plugins/marketplaces/armando-advogados/armando-advogados/skills/armando-pdf-markdown/scripts/pdf2md.py" \
+            "$HOME/armando-plugins/armando-advogados/skills/armando-pdf-markdown/scripts/pdf2md.py" 2>/dev/null | head -1)
 python3 "$PDF2MD" processo.pdf --out processo.md
 ```
 

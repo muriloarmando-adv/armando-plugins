@@ -54,10 +54,27 @@ Uma quarta, rara: página que rende **erro de PostScript** (`ERROR: undefined / 
 
 Dois passos, converter e mapear. **Escolha a coluna pelo ambiente**; a navegação depois (`grep`, `sed`) roda no Bash em qualquer um dos dois.
 
+**Antes de tudo, localize a raiz do plugin.** Rode isto uma vez na sessão; `$AA` serve para todos os comandos abaixo. As skills não moram num caminho fixo — vêm do plugin, e a pasta muda entre esta máquina, a nuvem e o Cowork.
+
+```powershell
+$AA = @($env:CLAUDE_PLUGIN_ROOT,
+        "$env:USERPROFILE\.claude\plugins\marketplaces\armando-advogados\armando-advogados",
+        "$env:USERPROFILE\armando-plugins\armando-advogados") |
+      Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+```
+
+```bash
+AA=$(ls -d "$CLAUDE_PLUGIN_ROOT" \
+        "$HOME/.claude/plugins/marketplaces/armando-advogados/armando-advogados" \
+        "$HOME/armando-plugins/armando-advogados" 2>/dev/null | head -1)
+```
+
+Se `$AA` sair vazio, o plugin não está instalado — pare e diga isso, em vez de adivinhar caminho.
+
 | Passo | Windows / PowerShell | Nuvem, Cowork, Linux, Mac / Python |
 |---|---|---|
-| **1. Converter** | `& "<plugin>\skills\armando-pdf-markdown\scripts\pdf2md.ps1" "autos.pdf" -Out "autos.md" -ManterRepetidos` | `python3 "<plugin>/skills/armando-pdf-markdown/scripts/pdf2md.py" autos.pdf --out autos.md --manter-repetidos` |
-| **2. Mapear** | `& "<plugin>\scripts\mapear-autos.ps1" -Path "autos.md" -Out "mapa.md"` | `python3 "<plugin>/scripts/mapear-autos.py" autos.md --out mapa.md` |
+| **1. Converter** | `& "$AA\skills\armando-pdf-markdown\scripts\pdf2md.ps1" "autos.pdf" -Out "autos.md" -ManterRepetidos` | `python3 "$AA/skills/armando-pdf-markdown/scripts/pdf2md.py" autos.pdf --out autos.md --manter-repetidos` |
+| **2. Mapear** | `& "$AA\scripts\mapear-autos.ps1" -Path "autos.md" -Out "mapa.md"` | `python3 "$AA/scripts/mapear-autos.py" autos.md --out mapa.md` |
 
 **Converta sempre com `-ManterRepetidos` / `--manter-repetidos`**, porque o carimbo de folha repete em toda página — é o que o define — e sem a opção ele é descartado junto com o cabeçalho: **sem o carimbo, as âncoras 2 e 3 da seção 3 mentem** e a citação por folha fica impossível.
 
@@ -165,13 +182,13 @@ A ficha é a espinha; os outros três se montam a partir dela. **Na dúvida, e s
 
 **`referencias/controle-de-qualidade.md`** — 81 verificações em nove tabelas, varrível numa passada. Os exemplos reais do acervo estão no apêndice, fora do caminho.
 
-Automatize o mecânico primeiro. Mesma escolha de coluna da seção 2:
+Automatize o mecânico primeiro. Mesma escolha de coluna da seção 2, e o mesmo `$AA` de lá:
 
 | O que confere | Windows / PowerShell | Nuvem, Cowork, Linux, Mac / Python |
 |---|---|---|
-| Mapa dos autos | `& "<plugin>\scripts\mapear-autos.ps1" -Path "<autos.md>" -Out "<mapa.md>"` | `python3 "<plugin>/scripts/mapear-autos.py" "<autos.md>" --out "<mapa.md>"` |
-| CPF, CNPJ e nº CNJ | `& "<plugin>\scripts\validar-identificadores.ps1" -Path "<análise>"` | `python3 "<plugin>/scripts/validar-identificadores.py" --path "<análise>"` |
-| Valor por extenso | `& "<plugin>\scripts\extenso.ps1" -Path "<análise>"` | `python3 "<plugin>/scripts/extenso.py" --path "<análise>"` |
+| Mapa dos autos | `& "$AA\scripts\mapear-autos.ps1" -Path "<autos.md>" -Out "<mapa.md>"` | `python3 "$AA/scripts/mapear-autos.py" "<autos.md>" --out "<mapa.md>"` |
+| CPF, CNPJ e nº CNJ | `& "$AA\scripts\validar-identificadores.ps1" -Path "<análise>"` | `python3 "$AA/scripts/validar-identificadores.py" --path "<análise>"` |
+| Valor por extenso | `& "$AA\scripts\extenso.ps1" -Path "<análise>"` | `python3 "$AA/scripts/extenso.py" --path "<análise>"` |
 
 ---
 

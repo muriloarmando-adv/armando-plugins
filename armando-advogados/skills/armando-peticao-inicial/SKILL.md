@@ -128,10 +128,31 @@ Antes de entregar, rode **`referencias/controle-de-qualidade.md`**. Ele apanha o
 **A parte mecânica é automatizada — rode sempre**, antes da conferência de leitura. Os três scripts ficam na pasta `scripts/` do plugin (localize o caminho: ele muda conforme a instalação). Aceitam `.docx`, `.md` e `.txt`, e devolvem código de saída `1` quando há achado de severidade ALTA:
 
 ```powershell
-& "<plugin>\scripts\revisar-inicial.ps1"          -Path "<peça>"   # resíduo, identificador divergente, numeração, requisitos do art. 319
-& "<plugin>\scripts\extenso.ps1"                  -Path "<peça>"   # confere cada par "R$ X (extenso)"
-& "<plugin>\scripts\validar-identificadores.ps1"  -Path "<peça>"   # dígito verificador de CPF, CNPJ e número CNJ
+& "$AA\scripts\revisar-inicial.ps1"          -Path "<peça>"   # resíduo, identificador divergente, numeração, requisitos do art. 319
+& "$AA\scripts\extenso.ps1"                  -Path "<peça>"   # confere cada par "R$ X (extenso)"
+& "$AA\scripts\validar-identificadores.ps1"  -Path "<peça>"   # dígito verificador de CPF, CNPJ e número CNJ
 ```
+
+> `$AA` e a raiz do plugin, e nao um caminho fixo: ela muda entre a maquina do
+> escritorio, a nuvem e o Cowork. Obtenha-a uma vez por sessao, antes de rodar
+> qualquer script acima:
+>
+> ```powershell
+> $AA = @($env:CLAUDE_PLUGIN_ROOT,
+>         "$env:USERPROFILE\.claude\plugins\marketplaces\armando-advogados\armando-advogados",
+>         "$env:USERPROFILE\armando-plugins\armando-advogados") |
+>       Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+> ```
+>
+> ```bash
+> AA=$(ls -d "$CLAUDE_PLUGIN_ROOT" \
+>         "$HOME/.claude/plugins/marketplaces/armando-advogados/armando-advogados" \
+>         "$HOME/armando-plugins/armando-advogados" 2>/dev/null | head -1)
+> ```
+>
+> Saindo vazio, o plugin nao esta instalado: **diga isso e pare**, em vez de
+> adivinhar caminho.
+
 
 O `extenso.ps1` também gera o extenso avulso, útil na hora de redigir: `-Valor 13173.13` devolve `R$ 13.173,13 (treze mil, cento e setenta e três reais e treze centavos)`.
 
