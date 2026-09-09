@@ -118,6 +118,16 @@ Peça em `.docx` sai pela `armando-timbrado`. Inicial obedece também à formata
 & "<scripts>\validar-identificadores.ps1"  -Path "<peça>"
 ```
 
+**Sem PowerShell — no painel de Habilidades do claude.ai, que roda Linux com Python:** use os gêmeos `.py`, que dão o mesmo resultado. Confira qual runtime existe antes de escolher, e não anuncie que rodou o que não rodou.
+
+```
+python <scripts>/triar-carteira.py          <planilha.csv> [--data-base AAAA-MM-DD] [--csv saida.csv]
+python <scripts>/extenso.py                 <peça>
+python <scripts>/validar-identificadores.py <peça>
+```
+
+`triar-carteira` e `extenso` e `validar-identificadores` têm gêmeo Python; **`revisar-inicial` só existe em PowerShell** — sem ele, faça a conferência da peça pela leitura dirigida de `referencias/controle-de-qualidade.md`.
+
 > A pasta dos scripts, nesta ordem:
 > 1. `$env:CLAUDE_SKILL_DIR/scripts` ou `$env:CLAUDE_PLUGIN_ROOT/scripts`, **se a variável estiver definida** — é o caminho documentado, e existe na instalação por plugin;
 > 2. `<base>/scripts` — o prompt informa o **diretório-base** da skill ao carregar; esta skill leva os scripts dentro dela, então aqui resolve;
