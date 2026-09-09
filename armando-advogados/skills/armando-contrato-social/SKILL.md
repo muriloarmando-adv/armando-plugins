@@ -100,6 +100,8 @@ Aditando instrumento que usa `CLÁUSULA PRIMEIRA` com itens decimais (padrão Me
 
 ## 5. As duas travas
 
+> **Onde estão os scripts.** No chat, ficam em `scripts/` dentro desta skill. No plugin instalado, a pasta é reposicionada para a raiz. Localize relativo ao diretório-base da skill: tente `<base>/scripts/` e, não achando, `<base>/../../scripts/`. Os três arquivos (`quadro-societario.ps1`, `conferir-instrumento.ps1`, `lib-extenso.ps1`) viajam juntos — o dot-source usa `$PSScriptRoot`, então funcionam em qualquer um dos dois layouts.
+
 ### 5.1 Quadro societário — nunca some à mão
 
 ```bash
