@@ -118,7 +118,12 @@ Peça em `.docx` sai pela `armando-timbrado`. Inicial obedece também à formata
 & "<scripts>\validar-identificadores.ps1"  -Path "<peça>"
 ```
 
-> A pasta dos scripts: quando esta skill carrega, o prompt informa o **diretório-base** dela. Tente, nesta ordem, `<base>/scripts` e `<base>/../../scripts` — esta skill leva os scripts **dentro** dela, então o primeiro caminho resolve; no plugin instalado há também a cópia da raiz. Saindo vazio nos dois, **pare e diga que não localizou os scripts**.
+> A pasta dos scripts, nesta ordem:
+> 1. `$env:CLAUDE_SKILL_DIR/scripts` ou `$env:CLAUDE_PLUGIN_ROOT/scripts`, **se a variável estiver definida** — é o caminho documentado, e existe na instalação por plugin;
+> 2. `<base>/scripts` — o prompt informa o **diretório-base** da skill ao carregar; esta skill leva os scripts dentro dela, então aqui resolve;
+> 3. `<base>/../../scripts` — a cópia da raiz do plugin.
+>
+> No app de desktop as duas variáveis vêm **vazias** (conferido em 09/09/2026), por isso a busca por caminho não pode ser removida. Saindo vazio nos três, **pare e diga que não localizou os scripts**.
 >
 > Em máquina que nunca rodou script da casa, o PowerShell pode recusar por política de execução. Rode uma vez, na sessão: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
 
