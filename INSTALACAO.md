@@ -65,10 +65,13 @@ Para conferir se pegou: `/plugin` e procurar `armando-advogados` na lista de ins
 
 ## Mensagem pronta para mandar no grupo do escritório
 
-> Pessoal, as skills do escritório para o Claude estão disponíveis. São oito:
+> Pessoal, as skills do escritório para o Claude estão disponíveis. São nove:
 >
 > - **análise de processo em curso** — lê os autos, diz em que pé está, qual foi o último
 >   movimento e o que vence primeiro, e entrega a ficha resumo no padrão da casa;
+> - **contestação trabalhista** — monta a defesa no padrão da casa a partir dos pedidos da
+>   inicial, e roda uma revisão automática que barra o protocolo quando encontra artigo
+>   revogado, OAB trocada ou módulo que concede o pedido que deveria negar;
 > - análise de contrato recebido de terceiro;
 > - redação de minuta no padrão da casa;
 > - contrato social, alteração e consolidação de limitada;
@@ -83,7 +86,7 @@ Para conferir se pegou: `/plugin` e procurar `armando-advogados` na lista de ins
 > `/plugin install armando-advogados@armando-advogados`
 >
 > Depois é só pedir normalmente — "analisa esse processo", "em que pé está o processo do fulano",
-> "analisa esse contrato", "faz a minuta de locação", "entra com a monitória", "monta a tarefa no
+> "analisa esse contrato", "faz a contestação dessa reclamatória", "faz a minuta de locação", "entra com a monitória", "monta a tarefa no
 > NAJI" — que a skill certa entra sozinha. Não precisa chamar pelo nome.
 
 ---
