@@ -118,7 +118,9 @@ Peça em `.docx` sai pela `armando-timbrado`. Inicial obedece também à formata
 & "<scripts>\validar-identificadores.ps1"  -Path "<peça>"
 ```
 
-> A pasta dos scripts: quando esta skill carrega, o prompt informa o **diretório-base** dela. Tente, nesta ordem, `<base>/scripts` e `<base>/../../scripts` — no chat a pasta vem dentro da skill; no plugin instalado, na raiz. Saindo vazio, **pare e diga que não localizou os scripts**.
+> A pasta dos scripts: quando esta skill carrega, o prompt informa o **diretório-base** dela. Tente, nesta ordem, `<base>/scripts` e `<base>/../../scripts` — esta skill leva os scripts **dentro** dela, então o primeiro caminho resolve; no plugin instalado há também a cópia da raiz. Saindo vazio nos dois, **pare e diga que não localizou os scripts**.
+>
+> Em máquina que nunca rodou script da casa, o PowerShell pode recusar por política de execução. Rode uma vez, na sessão: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
 
 Saída com código `1` quando há achado ALTA. **Achado ALTA é impedimento de protocolo.**
 
