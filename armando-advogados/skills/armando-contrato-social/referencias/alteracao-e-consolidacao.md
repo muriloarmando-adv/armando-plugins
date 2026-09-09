@@ -149,3 +149,51 @@ Roteiro de arquivamento — vale para a entrega ao cliente:
 3. **Assinaturas** por certificado ICP-Brasil ou gov.br (prata/ouro), conforme a Lei 14.063/2020, ou manuscritas com reconhecimento, na forma exigida pela Junta do Estado.
 4. **Desdobramentos** após o deferimento: atualização do CNPJ (DBE/Redesim), inscrições estadual e municipal, alvarás, bancos, certificado digital da empresa, contratos com cláusula de mudança de controle, cadastro de fornecedores e órgãos reguladores.
 5. **Guarde o instrumento arquivado** na pasta do cliente no Drive — a próxima alteração vai precisar dele para continuar a série e conferir a numeração.
+
+## 7. Alteração corretiva — quando o defeito já foi arquivado
+
+Defeito arquivado não se conserta com errata: exige **nova alteração contratual**. O acervo tem o modelo pronto — a **2ª Alteração e Consolidação da V Power Energia Solar Ltda** (Drive `19Ozbwzg6bEj44FhPFud5KNATlqTC5rWU`) existe *exclusivamente* para isso, e o próprio título anuncia o que faz:
+
+```
+SEGUNDA ALTERAÇÃO E CONSOLIDAÇÃO DO CONTRATO SOCIAL
+a) Da retificação da qualificação de sócia;
+b) Da correção de remissões internas; e,
+c) Da consolidação do contrato social.
+```
+
+**Sumário no título.** Quando a alteração faz mais de uma coisa, liste-as em alíneas logo abaixo do título. O analista da Junta lê isso primeiro.
+
+### 7.1 Cláusula de retificação de qualificação
+
+> **I – DA RETIFICAÇÃO DA QUALIFICAÇÃO DA SÓCIA [NOME]**
+>
+> 1. As sócias retificam a qualificação da sócia **[NOME] LTDA**, para fazer constar corretamente que seu contrato social encontra-se arquivado na Junta Comercial do Estado de [.....] – [SIGLA], sob o NIRE nº [.....], e não na Junta Comercial do Estado de [.....], como constou, por equívoco de digitação, na [Nª] Alteração Contratual e na Consolidação do Contrato Social nela contida.
+>
+> *Parágrafo único* – A retificação ora promovida aplica-se a todas as referências à qualificação da sócia **[NOME] LTDA** constantes do contrato social, inclusive na nova Consolidação de que trata a Cláusula [N] deste instrumento, **não produzindo qualquer efeito sobre a validade dos demais atos praticados sob a qualificação anterior**.
+
+A ressalva final do parágrafo único é o essencial: sem ela, a retificação abre discussão sobre a validade de tudo que foi assinado sob a qualificação errada.
+
+### 7.2 Cláusula de correção de remissões internas
+
+> **II – DA CORREÇÃO DE REMISSÕES INTERNAS**
+>
+> 2. As sócias corrigem as seguintes remissões internas equivocadas, constantes da Consolidação do Contrato Social arquivada por meio da [Nª] Alteração Contratual, as quais passam a vigorar com a redação abaixo:
+>
+> 2.1. A Cláusula 7.1 passa a vigorar com a seguinte redação:
+> *"7.1. O direito à subscrição poderá ser cedido a terceiros, observadas as regras de preferência estabelecidas na Cláusula VIII e seguintes abaixo."*
+>
+> 2.2. [...]
+>
+> *Parágrafo único* – Todas as demais cláusulas, itens e disposições do contrato social consolidado por meio da [Nª] Alteração Contratual permanecem inalterados, ressalvadas exclusivamente as retificações e correções constantes desta [Nª] Alteração.
+
+Uma subcláusula por remissão corrigida, cada uma com a redação nova transcrita entre aspas.
+
+### 7.3 A lição do caso
+
+A V Power gastou um instrumento inteiro — taxa, prazo, assinatura de todos os sócios e dos administradores, visto de advogado — para consertar **uma sigla de Junta trocada e cinco remissões internas**. É a medida exata do custo de não conferir antes do arquivamento.
+
+E há uma segunda lição, mais dura: **a alteração corretiva corrigiu as remissões e preservou uma nulidade material**. O item 2.3 reescreveu a Cláusula 9.11 apenas para acertar o número do item a que ela remetia, mantendo o comando — *"As deliberações sociais serão tomadas por todos os administradores não sócios"*. As matérias listadas ali (modificação do contrato, incorporação, fusão, cisão, dissolução, exclusão de sócia, aprovação de contas, distribuição de lucros) são privativas dos **sócios**, por força dos arts. 1.071 e 1.076. A cláusula é nula nessa parte, e continuou nula depois de corrigida.
+
+> **Regra:** ao corrigir uma remissão, releia o dispositivo inteiro. Consertar a moldura não endireita o quadro.
+
+`scripts/conferir-instrumento.ps1` acusa esse defeito de competência automaticamente.

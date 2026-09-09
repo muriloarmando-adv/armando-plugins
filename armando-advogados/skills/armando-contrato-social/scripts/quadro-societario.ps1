@@ -80,101 +80,9 @@ try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } 
 $ptBR = [Globalization.CultureInfo]::GetCultureInfo('pt-BR')
 
 # ---------------------------------------------------------------- extenso ---
-
-$Uni      = @('', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove')
-$Adolesc  = @('dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove')
-$Dezenas  = @('', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa')
-$Centenas = @('', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos')
-$Escalas  = @(
-    @{ Sing = '';         Plur = '' },
-    @{ Sing = 'mil';      Plur = 'mil' },
-    @{ Sing = 'milhão';   Plur = 'milhões' },
-    @{ Sing = 'bilhão';   Plur = 'bilhões' },
-    @{ Sing = 'trilhão';  Plur = 'trilhões' }
-)
-
-function Convert-GrupoExtenso {
-    param([int]$N)
-    if ($N -eq 0)   { return '' }
-    if ($N -eq 100) { return 'cem' }
-    $c = [int][math]::Floor($N / 100)
-    $r = $N % 100
-    $partes = @()
-    if ($c -gt 0) { $partes += $Centenas[$c] }
-    if ($r -gt 0) {
-        if ($r -lt 10) {
-            $partes += $Uni[$r]
-        } elseif ($r -lt 20) {
-            $partes += $Adolesc[$r - 10]
-        } else {
-            $d = [int][math]::Floor($r / 10)
-            $u = $r % 10
-            if ($u -gt 0) { $partes += ($Dezenas[$d] + ' e ' + $Uni[$u]) }
-            else          { $partes += $Dezenas[$d] }
-        }
-    }
-    return ($partes -join ' e ')
-}
-
-function Convert-InteiroExtenso {
-    param([long]$N)
-    if ($N -lt 0)  { return 'menos ' + (Convert-InteiroExtenso ([math]::Abs($N))) }
-    if ($N -eq 0)  { return 'zero' }
-
-    $vals = @()
-    $resto = $N
-    while ($resto -gt 0) {
-        $vals += [int]($resto % 1000)
-        $resto = [long][math]::Floor($resto / 1000)
-    }
-    if ($vals.Count -gt $Escalas.Count) { throw "Valor fora da faixa suportada pelo extenso: $N" }
-
-    $partes = @()
-    for ($i = $vals.Count - 1; $i -ge 0; $i--) {
-        $v = $vals[$i]
-        if ($v -eq 0) { continue }
-        $txt = Convert-GrupoExtenso $v
-        if ($i -eq 1) {
-            if ($v -eq 1) { if ($UmMil) { $txt = 'um mil' } else { $txt = 'mil' } }
-            else          { $txt = "$txt mil" }
-        } elseif ($i -ge 2) {
-            if ($v -eq 1) { $txt = 'um ' + $Escalas[$i].Sing }
-            else          { $txt = $txt + ' ' + $Escalas[$i].Plur }
-        }
-        $partes += ,@($txt, $v)
-    }
-
-    $saida = $partes[0][0]
-    for ($k = 1; $k -lt $partes.Count; $k++) {
-        $v = $partes[$k][1]
-        $ultimo = ($k -eq $partes.Count - 1)
-        if ($ultimo -and ($v -lt 100 -or ($v % 100) -eq 0)) { $saida = "$saida e "  + $partes[$k][0] }
-        else                                                { $saida = "$saida, " + $partes[$k][0] }
-    }
-    return $saida
-}
-
-function Convert-ReaisExtenso {
-    param([decimal]$V)
-    $neg = $V -lt 0
-    $V = [math]::Abs($V)
-    $inteiro = [long][math]::Truncate($V)
-    $cent = [int][math]::Round(($V - $inteiro) * 100, 0)
-    if ($cent -eq 100) { $inteiro++; $cent = 0 }
-
-    $p = @()
-    if ($inteiro -gt 0 -or $cent -eq 0) {
-        $u = 'reais'; if ($inteiro -eq 1) { $u = 'real' }
-        $p += (Convert-InteiroExtenso $inteiro) + " $u"
-    }
-    if ($cent -gt 0) {
-        $u = 'centavos'; if ($cent -eq 1) { $u = 'centavo' }
-        $p += (Convert-InteiroExtenso $cent) + " $u"
-    }
-    $r = $p -join ' e '
-    if ($neg) { $r = "menos $r" }
-    return $r
-}
+# Motor compartilhado com conferir-instrumento.ps1. Uma copia so: algoritmo
+# numerico duplicado em dois scripts diverge no primeiro conserto.
+. (Join-Path $PSScriptRoot 'lib-extenso.ps1')
 
 function Format-Real   { param([decimal]$V) return $V.ToString('N2', $ptBR) }
 function Format-Inteiro{ param([long]$V)    return $V.ToString('N0', $ptBR) }
@@ -380,12 +288,12 @@ Add-Linha '## Clausula do capital social'
 Add-Linha
 Add-Linha "CLAUSULA $Clausula - DO CAPITAL SOCIAL"
 Add-Linha
-$capExt   = Convert-ReaisExtenso $Capital
-$qtdExt   = Convert-InteiroExtenso $totalQuotas
-$vqExt    = Convert-ReaisExtenso $ValorQuota
+$capExt   = Convert-ReaisExtenso $Capital -UmMil:$UmMil
+$qtdExt   = Convert-InteiroExtenso $totalQuotas -UmMil:$UmMil
+$vqExt    = Convert-ReaisExtenso $ValorQuota -UmMil:$UmMil
 if ($aIntegralizar -gt 0.004) {
-    $intExt  = Convert-ReaisExtenso $somaInteg
-    $saldExt = Convert-ReaisExtenso $aIntegralizar
+    $intExt  = Convert-ReaisExtenso $somaInteg -UmMil:$UmMil
+    $saldExt = Convert-ReaisExtenso $aIntegralizar -UmMil:$UmMil
     $prazo = $prazoInteg; if (-not $prazo) { $prazo = '[......]' }
     Add-Linha "O capital social e de R$ $(Format-Real $Capital) ($capExt), dividido em $(Format-Inteiro $totalQuotas) ($qtdExt) quotas, no valor nominal de R$ $(Format-Real $ValorQuota) ($vqExt) cada, totalmente subscritas pelos socios e integralizadas em R$ $(Format-Real $somaInteg) ($intExt) em moeda corrente nacional, obrigando-se os socios a integralizar o saldo de R$ $(Format-Real $aIntegralizar) ($saldExt), em moeda corrente nacional, ate $prazo, assim distribuido:"
 } else {
@@ -403,7 +311,7 @@ Add-Linha "- Capital: R$ $(Format-Real $Capital) — **$capExt**"
 Add-Linha "- Quotas: $(Format-Inteiro $totalQuotas) — **$qtdExt**"
 Add-Linha "- Valor nominal: R$ $(Format-Real $ValorQuota) — **$vqExt**"
 foreach ($l in $linhas) {
-    Add-Linha "- $($l.Nome): $(Format-Inteiro $l.Quotas) ($(Convert-InteiroExtenso $l.Quotas)) quotas — R$ $(Format-Real $l.Valor) ($(Convert-ReaisExtenso $l.Valor))"
+    Add-Linha "- $($l.Nome): $(Format-Inteiro $l.Quotas) ($(Convert-InteiroExtenso $l.Quotas -UmMil:$UmMil)) quotas — R$ $(Format-Real $l.Valor) ($(Convert-ReaisExtenso $l.Valor -UmMil:$UmMil))"
 }
 
 $texto = $sb.ToString()
@@ -422,10 +330,10 @@ if ($Json) {
             [pscustomobject]@{
                 nome          = $_.Nome
                 quotas        = $_.Quotas
-                quotasExtenso = (Convert-InteiroExtenso $_.Quotas)
+                quotasExtenso = (Convert-InteiroExtenso $_.Quotas -UmMil:$UmMil)
                 percentual    = [math]::Round($_.Percentual, 4)
                 valor         = $_.Valor
-                valorExtenso  = (Convert-ReaisExtenso $_.Valor)
+                valorExtenso  = (Convert-ReaisExtenso $_.Valor -UmMil:$UmMil)
                 integralizado = $_.Integralizado
             }
         })

@@ -90,3 +90,21 @@ Toda entrega de contrato social ou alteração lista, ao final:
 4. Prazo de 30 dias para protocolo.
 5. Providências pós-deferimento: CNPJ, inscrições, bancos, certificado digital, contratos com cláusula de mudança de controle.
 6. Se houver acordo de sócios, o instrumento a que este contrato se vincula — e se ele já está arquivado na sede da sociedade.
+
+## 6. Dois pontos de registro que resolvem casos
+
+### 6.1 Liquidação de quotas de sócio falecido, sem alvará
+
+O **Manual de Registro de Sociedade Limitada** (anexo da IN DREI nº 81/2020) autoriza a liquidação das quotas do sócio falecido por deliberação dos sócios remanescentes, **independentemente de alvará judicial, formal de partilha ou anuência prévia dos sucessores** — desde que o contrato social preveja a liquidação após apuração de haveres.
+
+O escritório usou esse caminho na Clínica de Gastro de Palmas, citando na ata o contrato social, o **art. 1.028 do Código Civil** e o item do Manual. **Confira o número do item na versão vigente antes de citar**: o DREI altera a IN 81/2020 com frequência e a numeração se desloca. Modelo completo em `atas-e-deliberacoes.md`, seção 2.
+
+Cuidado prático: dispensar a anuência para o *registro* não é o mesmo que dispensá-la para a *quitação*. Faça os sucessores comparecerem como intervenientes anuentes sempre que possível.
+
+### 6.2 O art. 2.031 não fundamenta consolidação
+
+O art. 2.031 do Código Civil concedeu prazo para as sociedades constituídas antes de 11/01/2003 adaptarem seus atos ao CC/2002. **Esse prazo se exauriu.** Ele não é — e nunca foi — o fundamento da consolidação contratual.
+
+A consolidação é praxe do registro de empresas: reúne num único texto o contrato vigente depois das alterações, para que o instrumento seguinte não precise reconstituir a redação a partir de dez arquivamentos. Não precisa de base legal citada; se quiser citar alguma, cite a faculdade regulamentar do registro público de empresas mercantis (Lei 8.934/1994).
+
+Minuta que invoca o art. 2.031 quase sempre veio de modelo dos anos 2000 — e traz junto outros vícios da mesma época, a começar pelo quórum de 3/4 revogado pela Lei 14.451/2022. Encontrou um, procure os outros. `scripts/conferir-instrumento.ps1` acusa ambos.

@@ -10,8 +10,8 @@
     {
       "name": "armando-advogados",
       "source": "./armando-advogados",
-      "description": "Skills do escritório Armando Advogados: análise de processo judicial em curso, análise e elaboração de contratos, redação de petição inicial, papel timbrado, cards do NAJI, atos societários de limitada e conversão de PDF em Markdown.",
-      "version": "1.5.1",
+      "description": "Skills do escritório Armando Advogados: análise de processo judicial em curso, análise e elaboração de contratos, redação de petição inicial, papel timbrado, cards do NAJI, atos societários de limitada (contrato social, alteração, acordo de sócios, atas e parecer de minuta) e conversão de PDF em Markdown.",
+      "version": "1.7.0",
       "category": "legal"
     }
   ]

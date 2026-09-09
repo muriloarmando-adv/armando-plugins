@@ -6,6 +6,40 @@ Os itens marcados com ⚠ correspondem a defeitos que **existem em instrumentos 
 
 ---
 
+## 0. Trava automática — rode antes de qualquer leitura
+
+```bash
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/conferir-instrumento.ps1" "minuta.docx"
+```
+
+Aceita `.docx`, `.md` e `.txt`. Para PDF, converta antes com `armando-pdf-markdown`. Sai com código 1 se houver ERRO — **instrumento com ERRO não sai do escritório**.
+
+O script reconhece se o documento é contrato social, acordo de sócios ou ata, e não cobra de um o que só o outro exige. Ele confere, mecanicamente:
+
+| Regra | O que pega |
+|---|---|
+| `placeholder` | `[-INSERIR-]`, `[......]`, `XPTO`, `[SÓCIO 1]` esquecidos |
+| `base-legal` | art. 2.031 do CC invocado como fundamento da consolidação |
+| `eireli` | menção a EIRELI, tipo extinto pela Lei 14.382/2022 |
+| `quorum-14451` | quórum de 3/4 herdado de modelo anterior à Lei 14.451/2022 |
+| `competencia` | deliberação social, dissolução ou exclusão atribuídas a administradores |
+| `anuencia-tacita` | silêncio tratado como anuência |
+| `tempo-verbal` | "passará a ser" dentro da consolidação |
+| `capital-contraditorio` | "totalmente integralizado" convivendo com cronograma futuro |
+| `remissao` | remissão a Cláusula, Capítulo ou item que não existe no instrumento |
+| `numeracao` | sequência que regride (11.8 → 10.9), item repetido, cláusula sem cabeçalho |
+| `extenso` | extenso que não bate com o algarismo, em valores e em quantidades |
+| `grafia-nome` | duas grafias próximas do mesmo nome (NETTO/NETO, ROMANELLI/ROMANELI) |
+| `foro` | mais de um foro eleito; foro convivendo com arbitragem; foro a confirmar |
+| `desimpedimento` | ausência da declaração do art. 1.011, § 1º |
+| `liquidacao` | partilha do passivo em vez do acervo remanescente |
+| `regencia` | "as regras que, no Código Civil, regem a Sociedade Anônima" |
+| `cnae` | objeto social sem código CNAE |
+| `bens` | integralização em bens sem o art. 1.055, § 1º |
+| `prazo` | balanço anual com prazo de entrega em 31/12 |
+
+**O script não substitui esta lista.** Ele pega o mecânico; o que exige juízo — antinomia entre cláusulas, quórum desenhado contra o cliente, critério de haveres, alçada em face do ativo real — continua sendo leitura humana.
+
 ## A. Aritmética do capital — rode o script
 
 ```bash
@@ -90,6 +124,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/quadro-societario.p
 - [ ] A entrega lista: **pendências** (`[......]`), **escolhas de risco** (quóruns, critério de haveres, anuência tácita, distribuição desproporcional) e **providências de registro** (prazo de 30 dias, visto, documentos a coletar).
 
 ---
+
+## H. Competência, base legal e vícios materiais
+
+Bloco acrescido em 08/09/2026, a partir da leitura da consolidação V Power Energia Solar e do parecer do escritório sobre a 7ª Alteração Biomassa Chaparini.
+
+- [ ] ⚠ **Matéria de sócio não é atribuída a administrador.** A consolidação da V Power diz *"As deliberações sociais serão tomadas por todos os administradores não sócios"* e lista, em seguida, modificação do contrato, incorporação, fusão, cisão, dissolução, exclusão de sócia, aprovação de contas e distribuição de lucros. Tudo isso é privativo dos **sócios** (arts. 1.071 e 1.076) — a cláusula é nula nessa parte. O mesmo instrumento faz a sociedade ser *"dissolvida pela deliberação dos administradores"* e reconhece *"aos administradores o direito de promoverem a exclusão de sócia"*.
+- [ ] ⚠ **A base legal da consolidação não é o art. 2.031 do Código Civil.** Aquele dispositivo trata do prazo de adaptação das sociedades anteriores ao CC/2002, exaurido há duas décadas. É o achado nº 2 do parecer Biomassa Chaparini, e o erro mais frequente em minuta de contador.
+- [ ] ⚠ **Capital "totalmente integralizado" não convive com cronograma futuro.** A V Power fixa aportes até 31/12/2025 e 31/12/2030 na Cláusula V e abre a Cláusula VII com *"O capital social, em já estando totalmente integralizado, pode ser aumentado"*. Uma das duas é falsa.
+- [ ] **O objeto social e os CNAE correspondem à atividade real.** Método do parecer Biomassa: leia a **lista de bens integralizados** e a **denominação** como prova do negócio. Se o bem de maior valor é um picador florestal e o objeto só tem CNAE de serraria, o objeto está errado, não o ativo.
+- [ ] **A alçada da administração cobre o ativo que a sociedade realmente tem.** Trava só para bem imóvel, numa sociedade cujo patrimônio é frota e maquinário, não protege nada.
+- [ ] **Integralização em bens traz laudo e a cláusula do art. 1.055, § 1º** (solidariedade pela exata estimação por 5 anos) — sobretudo com bens antigos, cujo valor de mercado é contestável.
+- [ ] **Prazo cumprível.** A V Power obriga o administrador a entregar *"o balanço anual até 31 de dezembro de cada ano"*, sendo o exercício encerrado em 31 de dezembro.
+- [ ] ⚠ **Ao corrigir uma remissão, releia o dispositivo inteiro.** A 2ª Alteração da V Power reescreveu a Cláusula 9.11 só para acertar o número do item a que ela remetia — e manteve intacta a nulidade de atribuir as deliberações sociais aos administradores. Consertar a moldura não endireita o quadro.
+- [ ] **Foro conferido, não herdado.** A `Minuta - Acordo de Sócios - Completo` da casa carrega *"foro da Cidade de Recife/PE"*, num escritório de Palmas/TO.
 
 ## Regra de ouro
 

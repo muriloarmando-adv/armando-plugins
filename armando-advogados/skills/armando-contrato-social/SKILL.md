@@ -1,154 +1,155 @@
 ---
 name: armando-contrato-social
-description: Redige contrato social, alteração contratual e consolidação de sociedade limitada no padrão do escritório Armando Advogados — preâmbulo com qualificação apta a arquivamento, capítulos romanos com numeração contínua de cláusulas, quadro societário fechado por script, quóruns conferidos contra a Lei 14.451/2022, apuração de haveres, exclusão extrajudicial, regência supletiva e foro. Use SEMPRE que o usuário pedir para "abrir empresa", "constituir sociedade", "fazer o contrato social", "alteração contratual", "consolidar o contrato", "aumento de capital", "entrada/saída de sócio", "cessão de quotas", "mudar o administrador", "mudança de sede ou de objeto social", "holding familiar", "sociedade unipessoal", "distrato social" — mesmo que não diga "contrato social" ou "Junta Comercial". Para contrato entre empresas (locação, prestação de serviços, compra e venda), use `armando-elaborar-contrato`; para analisar contrato de terceiro, `armando-analise-contrato`.
+description: Redige, revisa e confere atos societários no padrão do escritório Armando Advogados — contrato social, alteração e consolidação, acordo de sócios, ata de reunião ou assembleia, transformação, distrato, holding, SPE, SCP e sociedade unipessoal — com quadro societário fechado por script, extenso gerado por algoritmo, quóruns conferidos contra a Lei 14.451/2022 e trava automática de 21 verificações antes do arquivamento. Use SEMPRE que o usuário pedir para "abrir empresa", "constituir sociedade", "fazer o contrato social", "alteração contratual", "consolidar o contrato", "aumento ou redução de capital", "entrada ou saída de sócio", "cessão de quotas", "trocar o administrador", "mudar sede ou objeto social", "abrir filial", "holding familiar", "montar a SPE", "acordo de sócios", "acordo de quotistas", "ata de reunião de sócios", "assembleia de quotistas", "liquidar as quotas do sócio falecido", "transformar em Ltda", "sociedade unipessoal", "distrato social", "encerrar a empresa" — e também para ANALISAR minuta societária de terceiro ("revisar essa alteração", "o contador mandou essa minuta", "conferir antes de levar na Junta", "parecer sobre o contrato social"). Para contrato entre empresas (locação, prestação de serviços, compra e venda), use `armando-elaborar-contrato`; para analisar contrato comercial de terceiro, `armando-analise-contrato`.
 ---
 
-# Contrato Social — Padrão Armando Advogados
+# Atos Societários — Padrão Armando Advogados
 
-Padrão extraído dos instrumentos societários do Drive do escritório: **Lawletter Agência Digital Ltda** (1ª Alteração e Consolidação — a arquitetura mais moderna da casa), **Megga Distribuidora Ltda** (XXVIII Alteração e Consolidação), **Distribuidora de Gás Correa Ltda** (XXII Alteração e Consolidação).
+Cobre **todo o ciclo societário da sociedade limitada**: constituir, alterar, consolidar, acordar entre sócios, deliberar em ata, transformar, corrigir o que foi arquivado com defeito e encerrar. Cobre também a **revisão de minuta de terceiro** antes do arquivamento — que é metade do trabalho societário da casa.
 
-Esta skill cobre **atos societários da limitada**: constituição, alteração, consolidação e distrato. Contrato entre empresas é `armando-elaborar-contrato`.
+Padrão extraído de instrumentos reais do Drive: Lawletter Agência Digital, Megga Distribuidora, Distribuidora de Gás Correa, V Power Energia Solar, Clínica de Gastro de Palmas, Biomassa Chaparini e a minuta em branco de acordo de sócios da casa.
 
-## 1. Apuração prévia obrigatória
+Contrato entre empresas é `armando-elaborar-contrato`. Estatuto de S.A. **não** é esta skill.
+
+---
+
+## 1. Escolha o produto
+
+| O usuário quer | Leia |
+|---|---|
+| constituir sociedade limitada | `referencias/estrutura-e-preambulo.md` + `clausulas-por-capitulo.md` |
+| alterar e consolidar contrato | `referencias/alteracao-e-consolidacao.md` |
+| corrigir defeito já arquivado | `alteracao-e-consolidacao.md`, seção 7 |
+| acordo de sócios ou de quotistas | `referencias/acordo-de-socios.md` |
+| ata de reunião ou assembleia | `referencias/atas-e-deliberacoes.md` |
+| liquidar quotas de sócio falecido | `atas-e-deliberacoes.md`, seção 2 |
+| holding, SPE, SCP, SLU, transformação, cisão, distrato | `referencias/especies-e-operacoes.md` |
+| revisar minuta de terceiro / dar parecer | `referencias/analise-de-instrumento.md` |
+| quóruns, art. 997, registro na Junta | `referencias/quoruns-e-registro.md` |
+| conferir antes de entregar | `referencias/controle-de-qualidade.md` |
+
+## 2. Apuração prévia obrigatória
 
 Não redija sem estas respostas. Pergunte em bloco:
 
-1. **É constituição ou alteração?** Se for alteração: **qual é o número da série** (a XXVIII vem depois da XXVII) e **cadê o último instrumento arquivado**. Sem ele não há como conferir numeração, redação vigente nem quóruns.
-2. **Quem são os sócios**, com qualificação completa — PF: nome, nacionalidade, naturalidade, data de nascimento, estado civil **e regime de bens se casado**, profissão, CPF, RG com órgão expedidor, endereço com CEP. PJ: denominação, CNPJ, sede, NIRE **e o representante que assina**.
-3. **Capital social**: valor total, valor nominal da quota, distribuição entre os sócios (em quotas ou em percentual), e se está totalmente integralizado — se não, em quê, em quanto tempo e de que forma.
-4. **Objeto social** e os CNAE correspondentes. Se a atividade depende de licença, diga qual.
-5. **Quem administra**, isolada ou conjuntamente, e com que limites de alçada.
-6. **Sede** (endereço completo) e **foro**.
-7. **O que o cliente quer proteger** — é a pergunta que define os quóruns, a cláusula de preferência, o critério de apuração de haveres e a exclusão extrajudicial. Sociedade 50/50 e sociedade 90/10 não levam o mesmo contrato.
+1. **Constituição, alteração ou ata?** Se for alteração: **qual o número da série** e **cadê o último instrumento arquivado**. Sem ele não há como conferir numeração, redação vigente, NIRE nem quóruns.
+2. **Quem são os sócios**, com qualificação completa — PF: nome, nacionalidade, naturalidade, nascimento, estado civil **e regime de bens se casado**, profissão, CPF, RG com órgão expedidor, endereço com CEP. PJ: denominação, CNPJ, sede, NIRE **e o representante que assina**.
+3. **Capital social**: total, valor nominal da quota, distribuição (em quotas ou percentual), e se está integralizado — se não, em quê, em quanto tempo, de que forma.
+4. **Objeto social** e os CNAE. Se a atividade depende de licença, diga qual.
+5. **Quem administra**, isolada ou conjuntamente, e com que **alçada** — em face do ativo que a sociedade realmente tem.
+6. **Sede** e **foro**.
+7. **O que o cliente quer proteger.** É a pergunta que define quóruns, preferência, critério de haveres e exclusão extrajudicial. Sociedade 50/50 e sociedade 90/10 não levam o mesmo contrato.
 
-Nunca invente CNPJ, CPF, NIRE, RG, CEP, CNAE ou data de arquivamento. Campo não apurado entra como `[......]` e sobe para a lista de pendências da entrega.
+Nunca invente CNPJ, CPF, NIRE, RG, CEP, CNAE ou data de arquivamento. Campo não apurado entra como `[......]` e sobe para a lista de pendências.
 
-## 2. Buscar o precedente no Drive antes de redigir
+## 3. Precedentes no Drive
 
 ```
 search_files: title contains '[nome da empresa]'
 search_files: title contains 'ALTERAÇÃO CONTRATUAL'
+search_files: title contains 'ACORDO DE SÓCIOS'
 search_files: fullText contains 'SOCIEDADE EMPRESÁRIA LIMITADA' and mimeType != 'application/vnd.google-apps.folder'
 ```
 
-Instrumentos de referência já localizados:
+**Lidos e destrinchados nas referências:**
 
-| Instrumento | ID | Situação |
+| Instrumento | ID | O que ensina |
 |---|---|---|
-| **Lawletter — 1ª Alteração e Consolidação** (`.docx`) | `1cw0tkOCxhSBx0sPpT02Mvczc1BpAAZd3` | lido — arquitetura de capítulos, DCF na apuração de haveres, confidencialidade |
-| Lawletter — 2ª Alteração (`.docx`) | `1yhI1ciPS8t5m-ZHSRgHiZbHAv6FyHcU0` | localizado |
-| **Megga Distribuidora — XXVIII Alteração e Consolidação** (`.docx`) | `1jik66mG2jcxZNhRJd5AnXPZuafvomPkb` | lido — cláusulas ordinais com itens decimais, filiais, capital destacado |
-| **Distribuidora de Gás Correa — XXII Alteração** (`.docx`) | `1DlPyUJ0-3-3Pu8v_mlC4NcZ53RB_qWSZ` | lido — alteração cláusula a cláusula, modelo enxuto de Junta |
-| Chaparini — 7ª Alteração e Consolidação (`.docx`) | `16BEgXxR54rN9YilJs8YnZ8r_hH4_ACPD` | localizado (marcado "não implementada") |
-| Fourmaq Participações — 2ª Alteração (`.pdf`) | `1NTzHjlcXHXPgJmjd9ZFMSzCvDKSRHl-r` | localizado |
-| Pasta "contrato social" | `15ndnjzRMg5Y4dbruBspvZ-NSNDSfRn20` | pasta |
-| Estatuto Social — Maximus Participações S.A. (`.pdf`) | `18LMTm2oGB0hBzom5as-ii1TkH8cuFj3K` | localizado — **S.A., não limitada**; serve de contraste, não de modelo |
+| Lawletter — 1ª Alteração e Consolidação | `1cw0tkOCxhSBx0sPpT02Mvczc1BpAAZd3` | arquitetura de 20 capítulos; DCF na apuração de haveres; consolidação que **perdeu a numeração** |
+| Megga Distribuidora — XXVIII Alteração | `1jik66mG2jcxZNhRJd5AnXPZuafvomPkb` | cláusulas ordinais com itens decimais; filiais; remissão a capítulo inexistente |
+| Distribuidora de Gás Correa — XXII Alteração | `1DlPyUJ0-3-3Pu8v_mlC4NcZ53RB_qWSZ` | alteração cláusula a cláusula; **extenso errado arquivado**; grafia divergente de nome |
+| V Power Energia Solar — 2ª Alteração | `19Ozbwzg6bEj44FhPFud5KNATlqTC5rWU` | **alteração corretiva**; deliberação atribuída a administradores; capital contraditório |
+| Clínica de Gastro — Ata de Reunião | `12yyqrwZUPI116WE8AHvM1Y4_e_mu_fWfhghsrs-yw-c` | ata em 8 seções; liquidação de quotas de falecido pelo Manual do DREI |
+| Biomassa Chaparini — Análise da 7ª Alteração | `15WqH7ywCNar-gCbDeDEfhB5sq4qio5lk` | **o formato de parecer da casa** e cinco travas materiais |
+| Minuta de Acordo de Sócios (modelo em branco) | `1QTpS4qMsuL1TRWjNqVezWIrXX5jSfZ_w` | 17 cláusulas com tag, drag, opção de compra — e **foro de Recife/PE** herdado |
 
-`SPE Caracol Ltda - Contrato Social.pdf` (`1RZ3ZsbG8G_zqHSQ_ma1l16U4OLduClgG`) é **digitalizado** — só devolve a folha de rosto da Junta. Não gaste leitura nele.
+Outros localizados (holdings, SPE, SCP, transformação, estatutos de S.A., séries longas de alteração) estão catalogados em `referencias/especies-e-operacoes.md`.
 
-Para ler PDF societário, use `armando-pdf-markdown`.
+⚠ `SPE Caracol Ltda - Contrato Social.pdf` (`1RZ3ZsbG8G_zqHSQ_ma1l16U4OLduClgG`) é **digitalizado** — devolve só a folha de rosto da Junta. Não gaste leitura. Para PDF societário, use `armando-pdf-markdown`.
 
-**Reaproveite a estrutura do precedente. Não reaproveite os defeitos** — o `referencias/controle-de-qualidade.md` lista, um a um, os que estão nesses arquivos.
+**Reaproveite a estrutura. Não reaproveite os defeitos** — `controle-de-qualidade.md` lista cada um deles, com o instrumento de origem.
 
-## 3. Estrutura
+## 4. Estrutura do contrato social
 
-Detalhamento e texto literal em `referencias/estrutura-e-preambulo.md`.
+Detalhamento em `referencias/estrutura-e-preambulo.md`; texto literal das 79 cláusulas em `referencias/clausulas-por-capitulo.md`.
 
 ```
 CONTRATO SOCIAL DE CONSTITUIÇÃO DA SOCIEDADE EMPRESÁRIA LIMITADA
 [DENOMINAÇÃO] LTDA
+[qualificação de cada sócio] + [fórmula de vinculação]
 
-[qualificação de cada sócio, em parágrafo próprio]
-[fórmula de vinculação]
-
-CAPÍTULO I    — DA DENOMINAÇÃO E DO ENDEREÇO DA SEDE
-CAPÍTULO II   — DO OBJETO SOCIAL E DO PRAZO DE DURAÇÃO
-CAPÍTULO III  — DO CAPITAL SOCIAL E DAS QUOTAS
-CAPÍTULO IV   — DA CESSÃO DE QUOTAS
-CAPÍTULO V    — DO AUMENTO E DA REDUÇÃO DO CAPITAL SOCIAL
-CAPÍTULO VI   — DOS DEVERES SOCIAIS
-CAPÍTULO VII  — DA ADMINISTRAÇÃO
-CAPÍTULO VIII — DAS DELIBERAÇÕES SOCIAIS
-CAPÍTULO IX   — DA CONVOCAÇÃO E DO VOTO
-CAPÍTULO X    — DO QUÓRUM DE DELIBERAÇÃO
-CAPÍTULO XI   — DO CONSELHO FISCAL
-CAPÍTULO XII  — DA CONTABILIDADE E DOS RESULTADOS DO EXERCÍCIO
-CAPÍTULO XIII — DO PRÓ-LABORE
-CAPÍTULO XIV  — DA INTERDIÇÃO DE SÓCIO E DA EXCLUSÃO JUDICIAL
-CAPÍTULO XV   — DO FALECIMENTO OU DIVÓRCIO E DA APURAÇÃO DE HAVERES
-CAPÍTULO XVI  — DA EXCLUSÃO EXTRAJUDICIAL E DA RETIRADA DE SÓCIO
-CAPÍTULO XVII — DA DISSOLUÇÃO E DA LIQUIDAÇÃO
-CAPÍTULO XVIII— DA CONFIDENCIALIDADE
-CAPÍTULO XIX  — DA REGÊNCIA SUPLETIVA E DA RESOLUÇÃO DE CONFLITOS
-CAPÍTULO XX   — DO FORO
+I DENOMINAÇÃO E SEDE            XI  CONSELHO FISCAL
+II OBJETO E PRAZO               XII CONTABILIDADE E RESULTADOS
+III CAPITAL E QUOTAS            XIII PRÓ-LABORE
+IV CESSÃO DE QUOTAS             XIV INTERDIÇÃO E EXCLUSÃO JUDICIAL
+V AUMENTO E REDUÇÃO             XV  FALECIMENTO, DIVÓRCIO E HAVERES
+VI DEVERES SOCIAIS              XVI EXCLUSÃO EXTRAJUDICIAL E RETIRADA
+VII ADMINISTRAÇÃO               XVII DISSOLUÇÃO E LIQUIDAÇÃO
+VIII DELIBERAÇÕES               XVIII CONFIDENCIALIDADE
+IX CONVOCAÇÃO E VOTO            XIX REGÊNCIA SUPLETIVA E CONFLITOS
+X QUÓRUM                        XX  FORO
 
 [fecho, local e data, assinaturas, visto de advogado]
 ```
 
-**Numeração.** Capítulo em algarismo romano; cláusula em **sequência contínua e única do início ao fim do instrumento** (`CLÁUSULA 1ª` … `CLÁUSULA 79`), atravessando os capítulos. Subdivisões em `Parágrafo único` / `Parágrafo primeiro`, ou em itens decimais — **um sistema só por documento**.
+**Numeração.** Capítulo em romano; cláusula em **sequência contínua e única do início ao fim**, atravessando os capítulos. Um só sistema de subdivisão por documento.
 
-A numeração contínua não é estética: toda alteração futura vai dizer "altera-se a Cláusula 45ª". Consolidação sem número de cláusula inutiliza o contrato para a alteração seguinte — e é exatamente o que aconteceu com o precedente Lawletter.
+A numeração contínua não é estética: toda alteração futura dirá "altera-se a Cláusula 45ª". Consolidação sem número de cláusula inutiliza o contrato para a alteração seguinte — foi o que aconteceu com a Lawletter.
 
-Se estiver aditando instrumento que usa a arquitetura de `CLÁUSULA PRIMEIRA` com itens decimais (padrão Megga), **mantenha a dele**. Não converta a arquitetura pelo caminho.
+Aditando instrumento que usa `CLÁUSULA PRIMEIRA` com itens decimais (padrão Megga), **mantenha a arquitetura dele**.
 
-## 4. Texto das cláusulas
+## 5. As duas travas
 
-`referencias/clausulas-por-capitulo.md` traz o **modelo completo**, capítulo a capítulo, com o texto literal de cada uma das 79 cláusulas, já corrigido dos defeitos dos precedentes. **Copie de lá.** Suprima o que não se aplicar e renumere.
-
-Cada capítulo vem com a nota do que costuma dar errado nele — silêncio na preferência, antinomia entre administração conjunta e isolada, exclusão automática por interdição, partilha do passivo na liquidação, regência supletiva mal enunciada.
-
-## 5. Quadro societário — sempre pelo script
-
-**Nunca some quotas à mão, nunca escreva extenso à mão.** O acervo tem instrumento arquivado com o extenso errado (`R$ 350.000,00 (quinhentos mil reais)`).
+### 5.1 Quadro societário — nunca some à mão
 
 ```bash
 powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/quadro-societario.ps1" dados.json
 ```
 
-Conferência rápida, sem arquivo:
-
 ```bash
 powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/quadro-societario.ps1" -Rapido "FULANO:55; BELTRANO:45" -Capital 66000
 ```
 
-O script devolve: **diagnóstico** (quotas que não fecham, capital indivisível pelo valor nominal, percentual que não dá número inteiro de quotas, integralização parcial sem prazo, PJ sócia sem representante, sociedade unipessoal), a **tabela pronta para colar** e a **cláusula do capital social** com todos os valores por extenso. Sai com código 1 se houver erro — o quadro não fecha, a minuta não sai.
+Devolve diagnóstico (quotas que não fecham, capital indivisível pelo valor nominal, percentual que não dá quota inteira, integralização parcial sem prazo, PJ sócia sem representante, unipessoalidade), a tabela pronta e a cláusula do capital **com o extenso gerado por algoritmo**. Sai com código 1 se o quadro não fecha.
 
-Flags úteis: `-ValorQuota`, `-UmMil` (grafia "um mil reais", usada nos instrumentos da casa), `-Clausula`, `-Saida arquivo.md`, `-Json`. Modelo de entrada em `scripts/exemplo-quadro.json`; a documentação completa está no cabeçalho do próprio `.ps1`.
+Flags: `-ValorQuota`, `-UmMil`, `-Clausula`, `-Saida`, `-Json`. Entrada de exemplo em `scripts/exemplo-quadro.json`.
 
-**Depois de redigida a minuta**, passe o documento inteiro pelo `scripts/extenso.ps1` do plugin (`armando-advogados/scripts/extenso.ps1`, modo `-Path`): ele varre a peça e acusa todo par `R$ X (extenso)` em que o extenso não bate com o algarismo — o erro típico de reaproveitar instrumento anterior e trocar só o número.
+### 5.2 Conferência do instrumento — antes de entregar, sempre
 
-## 6. Alteração e consolidação
+```bash
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/conferir-instrumento.ps1" "minuta.docx"
+```
 
-`referencias/alteracao-e-consolidacao.md` — anatomia do instrumento de duas partes, os três verbos (altera-se / inclui-se / suprime-se), redação pronta para aumento de capital, capitalização de reservas, cessão de quotas, retirada de sócio e troca de administração, e o roteiro de arquivamento.
+21 verificações contra os defeitos que **existem no acervo** — vários já arquivados. Aceita `.docx`, `.md` e `.txt`; para PDF, converta antes com `armando-pdf-markdown`. Reconhece se é contrato social, acordo de sócios ou ata, e não cobra de um o que só o outro exige.
 
-A regra que mais se descumpre: **o texto consolidado reproduz, palavra por palavra, o texto aprovado no corpo da alteração** — inclusive o tempo verbal.
+Pega: placeholder esquecido, art. 2.031 do CC, EIRELI, quórum de 3/4 pré-Lei 14.451, deliberação/dissolução/exclusão atribuídas a administradores, silêncio como anuência, futuro na consolidação, capital contraditório, remissão quebrada, numeração que regride, extenso que não bate, grafia divergente de nome, foro duplo ou herdado, falta de desimpedimento, partilha do passivo, regência supletiva malformada, objeto sem CNAE, integralização em bens sem o art. 1.055 § 1º, prazo impossível.
 
-## 7. Quóruns e registro
+Severidades: **ERRO** (código de saída 1 — não entregue), **ALERTA** (decida conscientemente), **CONFERIR** (confirmação humana). Flags: `-SoErros`, `-Saida`, `-Json`.
 
-`referencias/quoruns-e-registro.md` — tabela dos quóruns legais **depois da Lei 14.451/2022** (que rebaixou de 3/4 para mais da metade do capital a modificação do contrato e as operações societárias), as oito indicações obrigatórias do art. 997, os impedimentos (cônjuges em comunhão universal, menor sócio, sócio estrangeiro, administrador impedido), a sociedade unipessoal e o roteiro de registro na Junta.
+**Instrumento com ERRO não sai do escritório.**
 
-Quórum copiado de precedente é quórum errado. Confira contra o quadro societário real: 75% em sociedade 55/25 dá veto ao segundo sócio; "mais da metade" entrega a sociedade ao primeiro.
+Para a varredura final de todo par `R$ X (extenso)` do documento — inclusive valores fora do quadro societário — use também `armando-advogados/scripts/extenso.ps1` no modo `-Path`.
 
-## 8. Redação
+## 6. Redação
 
-- **Presente do indicativo com força prescritiva**: "A administração compete a…", "O capital social é de…". Na alteração, o ato se consuma: "o capital **é elevado**".
-- **Valores, quantidades e percentuais** sempre em algarismo seguido de extenso entre parênteses — sem exceção, e gerados pelo script.
-- **Nomes das pessoas em caixa alta e negrito**, com grafia idêntica em todas as ocorrências.
+- **Presente do indicativo com força prescritiva.** Na alteração o ato se consuma ("o capital **é elevado**"); na consolidação o estado é presente ("o capital **é** de").
+- **Valores, quantidades e percentuais** sempre em algarismo seguido de extenso entre parênteses — gerados pelo script, nunca digitados.
+- **Nomes em caixa alta e negrito**, com grafia idêntica em todas as ocorrências.
 - **Prazo qualificado**: dias corridos ou úteis, com termo inicial expresso.
-- **Remissão por número**, nunca por descrição.
-- **Um comando por cláusula.**
+- **Remissão por número**, nunca por descrição. Uma operação por cláusula.
 - Sem "outrossim", sem "destarte", sem latinismo. Contrato social é documento de registro público: registro seco.
 
-## 9. Controle de qualidade
+## 7. Controle de qualidade
 
-Antes de entregar, rode `referencias/controle-de-qualidade.md`. Sete blocos — aritmética, identidade das pessoas, numeração e remissões, antinomias internas, coerência entre alteração e consolidação, conteúdo mínimo e forma. Os itens marcados com ⚠ são defeitos que **existem nos precedentes do escritório**; a checagem serve para não os propagar.
+`referencias/controle-de-qualidade.md` — nove blocos: trava automática, aritmética, identidade das pessoas, numeração e remissões, antinomias, alteração × consolidação, conteúdo mínimo, forma, e **competência, base legal e vícios materiais**. Os itens marcados com ⚠ são defeitos reais do acervo.
 
-## 10. Entrega
+## 8. Entrega
 
-`.docx` em papel timbrado — acione `armando-timbrado`.
+`.docx` em papel timbrado — acione `armando-timbrado`. Parecer de análise segue o formato de `referencias/analise-de-instrumento.md`.
 
 Ao entregar, liste sempre:
 
-1. **Pendências** — todo campo `[......]` em aberto e os documentos a coletar.
-2. **Escolhas de risco** — quóruns adotados e a quem protegem; critério de apuração de haveres; anuência tácita ou expressa na preferência; distribuição desproporcional de lucros; regência supletiva escolhida.
+1. **Pendências** — todo `[......]` em aberto e os documentos a coletar.
+2. **Escolhas de risco** — quóruns e a quem protegem; critério de apuração de haveres; anuência tácita ou expressa; distribuição desproporcional; regência supletiva; alçada da administração em face do ativo.
 3. **Providências de registro** — prazo de 30 dias para protocolo, visto de advogado (ou a dispensa por ME/EPP), viabilidade e licenças, e o que fazer depois do deferimento.
+4. **Saída do `conferir-instrumento.ps1`** — se restou ALERTA ou CONFERIR, diga qual e por que foi mantido.
