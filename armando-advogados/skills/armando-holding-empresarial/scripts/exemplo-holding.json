@@ -1,0 +1,108 @@
+{
+  "_leia": "Exemplo com os números do modelo da Dra. Náira (capital de R$ 20.051.000,00). Nomes, CNPJ e NIRE são FICTÍCIOS. Campos entre colchetes viram pendência no diagnóstico.",
+  "rota": "conjunta",
+  "holding": {
+    "denominacao": "ALFA PARTICIPAÇÕES LTDA",
+    "nomeFantasia": "ALFA PARTICIPAÇÕES",
+    "sede": "Rua [......], nº [......], Bairro [......], Araguaína/TO, CEP [......]",
+    "cidade": "Araguaína",
+    "uf": "TO",
+    "inicio": "na data de arquivamento deste instrumento",
+    "valorQuota": 1.00,
+    "quorum": "50% + 1 (cinquenta por cento mais um)",
+    "acordoSocios": false,
+    "data": "",
+    "advogado": {"nome": "[......]", "oab": "[......]", "uf": "TO"}
+  },
+  "socios": [
+    {
+      "id": "S1",
+      "nome": "JOÃO DA SILVA EXEMPLO",
+      "genero": "M",
+      "qualificacao": "brasileiro, casado sob o regime de comunhão parcial de bens, empresário, nascido em 01/01/1970, natural de Araguaína-TO, portador da Carteira Nacional de Habilitação nº [......] DETRAN/TO, inscrito no CPF sob nº 000.000.000-00, residente e domiciliado na Rua [......], nº [......], Araguaína/TO, CEP [......]",
+      "estadoCivil": "casado",
+      "regimeBens": "comunhao_parcial",
+      "administrador": true,
+      "participacoes": [
+        {"investida": "I1", "quotas": 10000000, "valorDirpf": 10000000.00},
+        {"investida": "I2", "quotas": 25000, "valorDirpf": 25000.00},
+        {"investida": "I3", "quotas": 500, "valorDirpf": 500.00}
+      ]
+    },
+    {
+      "id": "S2",
+      "nome": "PEDRO DA SILVA EXEMPLO",
+      "genero": "M",
+      "qualificacao": "brasileiro, casado sob o regime de comunhão parcial de bens, empresário, nascido em 01/01/1975, natural de Araguaína-TO, portador da Carteira Nacional de Habilitação nº [......] DETRAN/TO, inscrito no CPF sob nº 111.111.111-11, residente e domiciliado na Rua [......], nº [......], Araguaína/TO, CEP [......]",
+      "estadoCivil": "casado",
+      "regimeBens": "comunhao_parcial",
+      "administrador": true,
+      "participacoes": [
+        {"investida": "I1", "quotas": 10000000, "valorDirpf": 10000000.00},
+        {"investida": "I2", "quotas": 25000, "valorDirpf": 25000.00},
+        {"investida": "I3", "quotas": 500, "valorDirpf": 500.00}
+      ]
+    }
+  ],
+  "investidas": [
+    {
+      "id": "I1",
+      "denominacao": "ALFA AGRONEGÓCIOS LTDA",
+      "cnpj": "[......]",
+      "nire": "[......]",
+      "sede": "Avenida [......], nº [......], Araguaína/TO, CEP [......]",
+      "uf": "TO",
+      "capital": 20000000.00,
+      "valorQuota": 1.00,
+      "capitalIntegralizado": true,
+      "numeroAlteracao": 4,
+      "clausulaCapital": "5ª",
+      "clausulaPreferencia": "8ª",
+      "permiteAdmNaoSocio": null,
+      "simples": false,
+      "patrimonioLiquido": 23500000.00,
+      "consolidar": false,
+      "quadro": [
+        {"socio": "S1", "quotas": 10000000, "administrador": true},
+        {"socio": "S2", "quotas": 10000000, "administrador": false}
+      ]
+    },
+    {
+      "id": "I2",
+      "denominacao": "ALFA TRANSPORTES LTDA",
+      "cnpj": "[......]",
+      "nire": "[......]",
+      "sede": "Rua [......], nº [......], Araguaína/TO, CEP [......]",
+      "uf": "TO",
+      "capital": 60000.00,
+      "valorQuota": 1.00,
+      "capitalIntegralizado": true,
+      "numeroAlteracao": 2,
+      "clausulaCapital": "4ª",
+      "simples": false,
+      "quadro": [
+        {"socio": "S1", "quotas": 25000, "administrador": true},
+        {"socio": "S2", "quotas": 25000, "administrador": true},
+        {"nome": "MARIA TERCEIRA EXEMPLO", "qualificacao": "brasileira, solteira, empresária, inscrita no CPF sob nº 222.222.222-22, residente e domiciliada em Araguaína/TO", "quotas": 10000, "administrador": false}
+      ]
+    },
+    {
+      "id": "I3",
+      "denominacao": "ALFA SERVIÇOS LTDA",
+      "cnpj": "[......]",
+      "nire": "[......]",
+      "sede": "Rua [......], nº [......], Araguaína/TO, CEP [......]",
+      "uf": "TO",
+      "capital": 1000.00,
+      "valorQuota": 1.00,
+      "capitalIntegralizado": null,
+      "numeroAlteracao": null,
+      "clausulaCapital": null,
+      "simples": true,
+      "quadro": [
+        {"socio": "S1", "quotas": 500, "administrador": true},
+        {"socio": "S2", "quotas": 500, "administrador": false}
+      ]
+    }
+  ]
+}
